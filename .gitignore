@@ -22,11 +22,6 @@ venv/
 .vscode/
 
 # Spider datasets
-spider/*
-!spider/README.md
+**/spider/*
+!**/spider/README.md
 *.zip
-
-# Local artifacts and AI tooling
-results/
-docs/
-.claude/
