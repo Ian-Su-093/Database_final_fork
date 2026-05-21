@@ -32,6 +32,10 @@ def _run_with_timeout(fn, timeout_secs: float):
     t.start()
     t.join(timeout_secs)
     if t.is_alive():
+        # NOTE: On timeout, the daemon thread continues running until the SQLite
+        # operation completes or the process exits. The connection is not forcibly
+        # closed because SQLite has no cancellation API. This is acceptable for
+        # our use case (short-lived process, rare timeouts).
         raise _QueryTimeoutError(f"Query exceeded {timeout_secs}s timeout")
     if exc[0] is not None:
         raise exc[0]
@@ -71,6 +75,14 @@ def execute_query(query: str, db_path: str,
     return True, rows
 
 
+def _normalize_row(row):
+    """Normalize a result row for order-insensitive comparison.
+    Converts all numeric types to float to avoid int/float mismatches
+    (e.g. COUNT(*) returns int, AVG() returns float for the same value).
+    """
+    return tuple(float(v) if isinstance(v, (int, float)) else v for v in row)
+
+
 def queries_produce_same_result(q1: str, q2: str, db_path: str,
                                 timeout_secs: float = 5.0) -> bool:
     """
@@ -86,4 +98,4 @@ def queries_produce_same_result(q1: str, q2: str, db_path: str,
     if not ok1 or not ok2:
         return False
 
-    return sorted(str(row) for row in r1) == sorted(str(row) for row in r2)
+    return sorted(_normalize_row(r) for r in r1) == sorted(_normalize_row(r) for r in r2)
