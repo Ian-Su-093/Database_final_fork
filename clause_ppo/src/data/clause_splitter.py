@@ -11,7 +11,6 @@ identifies the first clause where the base model went wrong.
 """
 
 from __future__ import annotations
-from typing import Optional
 
 
 # SQL execution order for CLAUSE-PPO prefix decomposition
@@ -109,8 +108,6 @@ def schema_to_string(db_id: str, tables_dict: dict) -> str:
 
     Used as the [SCHEMA] segment in the PRM model input.
     """
-    import collections
-
     db = tables_dict.get(db_id)
     if db is None:
         return f"[schema unavailable for {db_id}]"
