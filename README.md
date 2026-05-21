@@ -14,12 +14,16 @@ NL2SQL clause-level repair via PPO. Given a wrong SQL query, identify the faulty
 
 ```
 final/
-├── src/
-│   └── not organized yet
-├── scripts/
-│   ├── explore_spider.py  ← script to explore Spider dataset
-│   └── other scripts TBD
-├── spider/         ← Spider dataset (not committed; see spider/README.md)
+├── clause_ppo/           ← main training package
+│   ├── configs/          ← training configs (prm_config.yaml)
+│   ├── data/
+│   │   ├── processed/    ← built datasets (corruption_dataset.json, etc.)
+│   │   └── spider/       ← Spider dataset (not committed)
+│   ├── scripts/          ← build_corruption_dataset.py, train_prm.py
+│   └── src/              ← data, models, training, utils
+├── scripts/              ← entry points TBD (Sam)
+├── src/                  ← env, eval TBD (Sam)
+├── tests/                ← test suite
 └── requirements.txt
 ```
 
@@ -31,10 +35,11 @@ pip install -r requirements.txt
 ```
 
 ## Spider Dataset
+
 ```bash
 gdown "1403EGqzIDoHMdQF4c9Bkyl7dZLZ5Wt6J" -O spider.zip
 unzip spider.zip
-mv spider_data spider   # rename to match expected path
+mv spider_data clause_ppo/data/spider
 rm spider.zip
-rm -rf __MACOSX/        # cleanup extraneous folder
+rm -rf __MACOSX/
 ```
