@@ -1,0 +1,89 @@
+"""
+SQLite execution oracle for CLAUSE-PPO.
+
+execute_query      — run a SQL string against a .sqlite file; treat empty results as failure.
+queries_produce_same_result — compare two queries' result sets (order-insensitive).
+
+Timeout is implemented with a daemon thread so it works on any OS (signal.alarm
+is UNIX-only and requires the main thread).
+"""
+
+import sqlite3
+import threading
+from typing import Optional
+
+
+class _QueryTimeoutError(Exception):
+    pass
+
+
+def _run_with_timeout(fn, timeout_secs: float):
+    """Run fn() in a daemon thread; raise _QueryTimeoutError if it takes too long."""
+    result: list = [None]
+    exc: list = [None]
+
+    def _target():
+        try:
+            result[0] = fn()
+        except Exception as e:
+            exc[0] = e
+
+    t = threading.Thread(target=_target, daemon=True)
+    t.start()
+    t.join(timeout_secs)
+    if t.is_alive():
+        raise _QueryTimeoutError(f"Query exceeded {timeout_secs}s timeout")
+    if exc[0] is not None:
+        raise exc[0]
+    return result[0]
+
+
+def execute_query(query: str, db_path: str,
+                  timeout_secs: float = 5.0) -> tuple[bool, Optional[list]]:
+    """
+    Execute *query* against the SQLite database at *db_path*.
+
+    Returns:
+        (True,  list[list])  — query ran and returned >=1 row.
+        (False, None)        — query raised an exception or timed out.
+        (False, [])          — query ran but returned 0 rows (treated as failure
+                               because empty results provide no training signal).
+    """
+    def _run():
+        conn = sqlite3.connect(db_path)
+        try:
+            cur = conn.cursor()
+            cur.execute(query)
+            rows = cur.fetchall()
+            return [list(r) for r in rows]
+        finally:
+            conn.close()
+
+    try:
+        rows = _run_with_timeout(_run, timeout_secs)
+    except _QueryTimeoutError:
+        return False, None
+    except Exception:
+        return False, None
+
+    if not rows:
+        return False, []
+    return True, rows
+
+
+def queries_produce_same_result(q1: str, q2: str, db_path: str,
+                                timeout_secs: float = 5.0) -> bool:
+    """
+    Return True iff *q1* and *q2* produce identical result sets (order-insensitive)
+    against the database at *db_path*.
+
+    Used in the corruption pipeline: a corruption is only kept when this returns
+    False — meaning the mutation actually changed the query's answer.
+    """
+    ok1, r1 = execute_query(q1, db_path, timeout_secs)
+    ok2, r2 = execute_query(q2, db_path, timeout_secs)
+
+    if not ok1 or not ok2:
+        return False
+
+    return sorted(str(row) for row in r1) == sorted(str(row) for row in r2)
