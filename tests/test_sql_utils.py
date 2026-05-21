@@ -4,8 +4,9 @@ import pytest
 from utils.sql_utils import reconstruct_sql
 from utils.execution import execute_query
 
-SPIDER_DIR = os.path.join(os.path.dirname(__file__), '..', 'spider')
-
+SPIDER_DIR = os.path.join(
+    os.path.dirname(__file__), '..', 'clause_ppo', 'data', 'spider'
+)
 
 def _load_db(db_id):
     return os.path.join(SPIDER_DIR, 'database', db_id, f'{db_id}.sqlite')
