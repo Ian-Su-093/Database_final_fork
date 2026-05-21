@@ -1,0 +1,2351 @@
+[
+  {
+    "db_id": "department_management",
+    "question": "How many heads of the departments are older than 56 ?",
+    "original_query": "SELECT COUNT(*) FROM head WHERE age > 56.0",
+    "corrupted_query": "SELECT COUNT(*) FROM department WHERE age > 56.0",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "department_management",
+    "question": "How many heads of the departments are older than 56 ?",
+    "original_query": "SELECT COUNT(*) FROM head WHERE age > 56.0",
+    "corrupted_query": "SELECT COUNT(*) FROM head WHERE age NOT > 56.0",
+    "corrupted_clause": "where",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_where"
+  },
+  {
+    "db_id": "department_management",
+    "question": "How many heads of the departments are older than 56 ?",
+    "original_query": "SELECT COUNT(*) FROM head WHERE age > 56.0",
+    "corrupted_query": "SELECT MAX(*) FROM head WHERE age > 56.0",
+    "corrupted_clause": "select",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "department_management",
+    "question": "List the name, born state and age of the heads of departments ordered by age.",
+    "original_query": "SELECT name, born_state, age FROM head ORDER BY age ASC",
+    "corrupted_query": "SELECT name, born_state, age FROM department ORDER BY age ASC",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "department_management",
+    "question": "List the name, born state and age of the heads of departments ordered by age.",
+    "original_query": "SELECT name, born_state, age FROM head ORDER BY age ASC",
+    "corrupted_query": "SELECT born_state, age FROM head ORDER BY age ASC",
+    "corrupted_clause": "select",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "department_management",
+    "question": "List the creation year, name and budget of each department.",
+    "original_query": "SELECT Creation, Name, Budget_in_Billions FROM department",
+    "corrupted_query": "SELECT Creation, Name, Budget_in_Billions FROM head",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "department_management",
+    "question": "List the creation year, name and budget of each department.",
+    "original_query": "SELECT Creation, Name, Budget_in_Billions FROM department",
+    "corrupted_query": "SELECT Name, Budget_in_Billions FROM department",
+    "corrupted_clause": "select",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "department_management",
+    "question": "What are the maximum and minimum budget of the departments?",
+    "original_query": "SELECT MAX(Budget_in_Billions), MIN(Budget_in_Billions) FROM department",
+    "corrupted_query": "SELECT MAX(Budget_in_Billions), MIN(Budget_in_Billions) FROM head",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "department_management",
+    "question": "What are the maximum and minimum budget of the departments?",
+    "original_query": "SELECT MAX(Budget_in_Billions), MIN(Budget_in_Billions) FROM department",
+    "corrupted_query": "SELECT MIN(Budget_in_Billions), MIN(Budget_in_Billions) FROM department",
+    "corrupted_clause": "select",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "department_management",
+    "question": "What is the average number of employees of the departments whose rank is between 10 and 15?",
+    "original_query": "SELECT AVG(Num_Employees) FROM department WHERE Ranking BETWEEN 10.0 AND 15.0",
+    "corrupted_query": "SELECT AVG(Num_Employees) FROM head WHERE Ranking BETWEEN 10.0 AND 15.0",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "department_management",
+    "question": "What is the average number of employees of the departments whose rank is between 10 and 15?",
+    "original_query": "SELECT AVG(Num_Employees) FROM department WHERE Ranking BETWEEN 10.0 AND 15.0",
+    "corrupted_query": "SELECT AVG(Num_Employees) FROM department WHERE Ranking NOT BETWEEN 10.0 AND 15.0",
+    "corrupted_clause": "where",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_where"
+  },
+  {
+    "db_id": "department_management",
+    "question": "What is the average number of employees of the departments whose rank is between 10 and 15?",
+    "original_query": "SELECT AVG(Num_Employees) FROM department WHERE Ranking BETWEEN 10.0 AND 15.0",
+    "corrupted_query": "SELECT MAX(Num_Employees) FROM department WHERE Ranking BETWEEN 10.0 AND 15.0",
+    "corrupted_clause": "select",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "department_management",
+    "question": "What are the names of the heads who are born outside the California state?",
+    "original_query": "SELECT name FROM head WHERE born_state != 'California'",
+    "corrupted_query": "SELECT name FROM department WHERE born_state != 'California'",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "department_management",
+    "question": "What are the names of the heads who are born outside the California state?",
+    "original_query": "SELECT name FROM head WHERE born_state != 'California'",
+    "corrupted_query": "SELECT name FROM head WHERE born_state NOT != 'California'",
+    "corrupted_clause": "where",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_where"
+  },
+  {
+    "db_id": "department_management",
+    "question": "What are the names of the heads who are born outside the California state?",
+    "original_query": "SELECT name FROM head WHERE born_state != 'California'",
+    "corrupted_query": "SELECT born_state FROM head WHERE born_state != 'California'",
+    "corrupted_clause": "select",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "department_management",
+    "question": "What are the distinct creation years of the departments managed by a secretary born in state 'Alabama'?",
+    "original_query": "SELECT DISTINCT department.Creation FROM department, management, head WHERE department.Department_ID = management.department_ID AND management.head_ID = head.head_ID AND head.born_state = 'Alabama'",
+    "corrupted_query": "SELECT DISTINCT department.Creation FROM department, management WHERE department.Department_ID = management.department_ID AND born_state = 'Alabama'",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "department_management",
+    "question": "What are the distinct creation years of the departments managed by a secretary born in state 'Alabama'?",
+    "original_query": "SELECT DISTINCT department.Creation FROM department, management, head WHERE department.Department_ID = management.department_ID AND management.head_ID = head.head_ID AND head.born_state = 'Alabama'",
+    "corrupted_query": "SELECT DISTINCT department.Creation FROM department, management, head WHERE department.Department_ID = management.department_ID AND management.head_ID = head.head_ID AND head.born_state NOT = 'Alabama'",
+    "corrupted_clause": "where",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_where"
+  },
+  {
+    "db_id": "department_management",
+    "question": "What are the distinct creation years of the departments managed by a secretary born in state 'Alabama'?",
+    "original_query": "SELECT DISTINCT department.Creation FROM department, management, head WHERE department.Department_ID = management.department_ID AND management.head_ID = head.head_ID AND head.born_state = 'Alabama'",
+    "corrupted_query": "SELECT DISTINCT department.Name FROM department, management, head WHERE department.Department_ID = management.department_ID AND management.head_ID = head.head_ID AND head.born_state = 'Alabama'",
+    "corrupted_clause": "select",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "department_management",
+    "question": "What are the names of the states where at least 3 heads were born?",
+    "original_query": "SELECT born_state FROM head GROUP BY born_state HAVING COUNT(*) >= 3.0",
+    "corrupted_query": "SELECT born_state FROM department GROUP BY born_state HAVING COUNT(*) >= 3.0",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "department_management",
+    "question": "What are the names of the states where at least 3 heads were born?",
+    "original_query": "SELECT born_state FROM head GROUP BY born_state HAVING COUNT(*) >= 3.0",
+    "corrupted_query": "SELECT born_state FROM head GROUP BY head_ID HAVING COUNT(*) >= 3.0",
+    "corrupted_clause": "groupBy",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_groupBy"
+  },
+  {
+    "db_id": "department_management",
+    "question": "What are the names of the states where at least 3 heads were born?",
+    "original_query": "SELECT born_state FROM head GROUP BY born_state HAVING COUNT(*) >= 3.0",
+    "corrupted_query": "SELECT born_state FROM head GROUP BY born_state HAVING COUNT(*) <= 3.0",
+    "corrupted_clause": "having",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_having"
+  },
+  {
+    "db_id": "department_management",
+    "question": "What are the names of the states where at least 3 heads were born?",
+    "original_query": "SELECT born_state FROM head GROUP BY born_state HAVING COUNT(*) >= 3.0",
+    "corrupted_query": "SELECT name FROM head GROUP BY born_state HAVING COUNT(*) >= 3.0",
+    "corrupted_clause": "select",
+    "corrupted_position": 3,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "department_management",
+    "question": "In which year were most departments established?",
+    "original_query": "SELECT Creation FROM department GROUP BY Creation ORDER BY COUNT(*) DESC LIMIT 1",
+    "corrupted_query": "SELECT Creation FROM head GROUP BY Creation ORDER BY COUNT(*) DESC LIMIT 1",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "department_management",
+    "question": "In which year were most departments established?",
+    "original_query": "SELECT Creation FROM department GROUP BY Creation ORDER BY COUNT(*) DESC LIMIT 1",
+    "corrupted_query": "SELECT Name FROM department GROUP BY Creation ORDER BY COUNT(*) DESC LIMIT 1",
+    "corrupted_clause": "select",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "department_management",
+    "question": "In which year were most departments established?",
+    "original_query": "SELECT Creation FROM department GROUP BY Creation ORDER BY COUNT(*) DESC LIMIT 1",
+    "corrupted_query": "SELECT Creation FROM department GROUP BY Creation ORDER BY COUNT(*) ASC LIMIT 1",
+    "corrupted_clause": "orderBy",
+    "corrupted_position": 3,
+    "corruption_strategy": "corrupt_orderBy"
+  },
+  {
+    "db_id": "department_management",
+    "question": "Show the name and number of employees for the departments managed by heads whose temporary acting value is 'Yes'?",
+    "original_query": "SELECT department.Name, department.Num_Employees FROM department, management WHERE department.Department_ID = management.department_ID AND management.temporary_acting = 'Yes'",
+    "corrupted_query": "SELECT Name, Num_Employees FROM department WHERE temporary_acting = 'Yes'",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "department_management",
+    "question": "Show the name and number of employees for the departments managed by heads whose temporary acting value is 'Yes'?",
+    "original_query": "SELECT department.Name, department.Num_Employees FROM department, management WHERE department.Department_ID = management.department_ID AND management.temporary_acting = 'Yes'",
+    "corrupted_query": "SELECT department.Name, department.Num_Employees FROM department, management WHERE department.Department_ID = management.department_ID AND management.temporary_acting NOT = 'Yes'",
+    "corrupted_clause": "where",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_where"
+  },
+  {
+    "db_id": "department_management",
+    "question": "Show the name and number of employees for the departments managed by heads whose temporary acting value is 'Yes'?",
+    "original_query": "SELECT department.Name, department.Num_Employees FROM department, management WHERE department.Department_ID = management.department_ID AND management.temporary_acting = 'Yes'",
+    "corrupted_query": "SELECT department.Num_Employees FROM department, management WHERE department.Department_ID = management.department_ID AND management.temporary_acting = 'Yes'",
+    "corrupted_clause": "select",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "department_management",
+    "question": "How many acting statuses are there?",
+    "original_query": "SELECT COUNT(DISTINCT temporary_acting) FROM management",
+    "corrupted_query": "SELECT COUNT(DISTINCT temporary_acting) FROM department",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "department_management",
+    "question": "How many acting statuses are there?",
+    "original_query": "SELECT COUNT(DISTINCT temporary_acting) FROM management",
+    "corrupted_query": "SELECT MAX(DISTINCT temporary_acting) FROM management",
+    "corrupted_clause": "select",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "department_management",
+    "question": "How many departments are led by heads who are not mentioned?",
+    "original_query": "SELECT COUNT(*) FROM department WHERE Department_ID NOT IN ((SELECT department_ID FROM management))",
+    "corrupted_query": "SELECT COUNT(*) FROM head WHERE Department_ID NOT IN ((SELECT department_ID FROM management))",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "department_management",
+    "question": "How many departments are led by heads who are not mentioned?",
+    "original_query": "SELECT COUNT(*) FROM department WHERE Department_ID NOT IN ((SELECT department_ID FROM management))",
+    "corrupted_query": "SELECT COUNT(*) FROM department WHERE Department_ID IN ((SELECT department_ID FROM management))",
+    "corrupted_clause": "where",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_where"
+  },
+  {
+    "db_id": "department_management",
+    "question": "How many departments are led by heads who are not mentioned?",
+    "original_query": "SELECT COUNT(*) FROM department WHERE Department_ID NOT IN ((SELECT department_ID FROM management))",
+    "corrupted_query": "SELECT MAX(*) FROM department WHERE Department_ID NOT IN ((SELECT department_ID FROM management))",
+    "corrupted_clause": "select",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "department_management",
+    "question": "What are the distinct ages of the heads who are acting?",
+    "original_query": "SELECT DISTINCT head.age FROM management, head WHERE head.head_ID = management.head_ID AND management.temporary_acting = 'Yes'",
+    "corrupted_query": "SELECT DISTINCT age FROM management WHERE temporary_acting = 'Yes'",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "department_management",
+    "question": "What are the distinct ages of the heads who are acting?",
+    "original_query": "SELECT DISTINCT head.age FROM management, head WHERE head.head_ID = management.head_ID AND management.temporary_acting = 'Yes'",
+    "corrupted_query": "SELECT DISTINCT head.age FROM management, head WHERE head.head_ID = management.head_ID AND management.temporary_acting NOT = 'Yes'",
+    "corrupted_clause": "where",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_where"
+  },
+  {
+    "db_id": "department_management",
+    "question": "What are the distinct ages of the heads who are acting?",
+    "original_query": "SELECT DISTINCT head.age FROM management, head WHERE head.head_ID = management.head_ID AND management.temporary_acting = 'Yes'",
+    "corrupted_query": "SELECT DISTINCT head.head_ID FROM management, head WHERE head.head_ID = management.head_ID AND management.temporary_acting = 'Yes'",
+    "corrupted_clause": "select",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "department_management",
+    "question": "List the states where both the secretary of 'Treasury' department and the secretary of 'Homeland Security' were born.",
+    "original_query": "SELECT head.born_state FROM department, management, head WHERE department.Department_ID = management.department_ID AND management.head_ID = head.head_ID AND department.Name = 'Treasury' INTERSECT SELECT head.born_state FROM department, management, head WHERE department.Department_ID = management.department_ID AND management.head_ID = head.head_ID AND department.Name = 'Homeland Security'",
+    "corrupted_query": "SELECT born_state FROM department, management WHERE department.Department_ID = management.department_ID AND department.Name = 'Treasury' INTERSECT SELECT head.born_state FROM department, management, head WHERE department.Department_ID = management.department_ID AND management.head_ID = head.head_ID AND department.Name = 'Homeland Security'",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "department_management",
+    "question": "List the states where both the secretary of 'Treasury' department and the secretary of 'Homeland Security' were born.",
+    "original_query": "SELECT head.born_state FROM department, management, head WHERE department.Department_ID = management.department_ID AND management.head_ID = head.head_ID AND department.Name = 'Treasury' INTERSECT SELECT head.born_state FROM department, management, head WHERE department.Department_ID = management.department_ID AND management.head_ID = head.head_ID AND department.Name = 'Homeland Security'",
+    "corrupted_query": "SELECT head.born_state FROM department, management, head WHERE department.Department_ID = management.department_ID AND management.head_ID = head.head_ID AND department.Name NOT = 'Treasury' INTERSECT SELECT head.born_state FROM department, management, head WHERE department.Department_ID = management.department_ID AND management.head_ID = head.head_ID AND department.Name = 'Homeland Security'",
+    "corrupted_clause": "where",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_where"
+  },
+  {
+    "db_id": "department_management",
+    "question": "List the states where both the secretary of 'Treasury' department and the secretary of 'Homeland Security' were born.",
+    "original_query": "SELECT head.born_state FROM department, management, head WHERE department.Department_ID = management.department_ID AND management.head_ID = head.head_ID AND department.Name = 'Treasury' INTERSECT SELECT head.born_state FROM department, management, head WHERE department.Department_ID = management.department_ID AND management.head_ID = head.head_ID AND department.Name = 'Homeland Security'",
+    "corrupted_query": "SELECT head.name FROM department, management, head WHERE department.Department_ID = management.department_ID AND management.head_ID = head.head_ID AND department.Name = 'Treasury' INTERSECT SELECT head.born_state FROM department, management, head WHERE department.Department_ID = management.department_ID AND management.head_ID = head.head_ID AND department.Name = 'Homeland Security'",
+    "corrupted_clause": "select",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "department_management",
+    "question": "Which department has more than 1 head at a time? List the id, name and the number of heads.",
+    "original_query": "SELECT department.Department_ID, department.Name, COUNT(*) FROM management, department WHERE department.Department_ID = management.department_ID GROUP BY department.Department_ID HAVING COUNT(*) > 1.0",
+    "corrupted_query": "SELECT Department_ID, Name, COUNT(*) FROM management GROUP BY Department_ID HAVING COUNT(*) > 1.0",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "department_management",
+    "question": "Which department has more than 1 head at a time? List the id, name and the number of heads.",
+    "original_query": "SELECT department.Department_ID, department.Name, COUNT(*) FROM management, department WHERE department.Department_ID = management.department_ID GROUP BY department.Department_ID HAVING COUNT(*) > 1.0",
+    "corrupted_query": "SELECT department.Department_ID, department.Name, COUNT(*) FROM management, department WHERE department.Department_ID = management.department_ID GROUP BY department.Department_ID HAVING COUNT(*) < 1.0",
+    "corrupted_clause": "having",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_having"
+  },
+  {
+    "db_id": "department_management",
+    "question": "Which department has more than 1 head at a time? List the id, name and the number of heads.",
+    "original_query": "SELECT department.Department_ID, department.Name, COUNT(*) FROM management, department WHERE department.Department_ID = management.department_ID GROUP BY department.Department_ID HAVING COUNT(*) > 1.0",
+    "corrupted_query": "SELECT department.Department_ID, department.Name, MAX(*) FROM management, department WHERE department.Department_ID = management.department_ID GROUP BY department.Department_ID HAVING COUNT(*) > 1.0",
+    "corrupted_clause": "select",
+    "corrupted_position": 3,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "department_management",
+    "question": "Which head's name has the substring 'Ha'? List the id and name.",
+    "original_query": "SELECT head_ID, name FROM head WHERE name LIKE '%Ha%'",
+    "corrupted_query": "SELECT head_ID, name FROM department WHERE name LIKE '%Ha%'",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "department_management",
+    "question": "Which head's name has the substring 'Ha'? List the id and name.",
+    "original_query": "SELECT head_ID, name FROM head WHERE name LIKE '%Ha%'",
+    "corrupted_query": "SELECT head_ID, name FROM head WHERE name NOT LIKE '%Ha%'",
+    "corrupted_clause": "where",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_where"
+  },
+  {
+    "db_id": "department_management",
+    "question": "Which head's name has the substring 'Ha'? List the id and name.",
+    "original_query": "SELECT head_ID, name FROM head WHERE name LIKE '%Ha%'",
+    "corrupted_query": "SELECT name FROM head WHERE name LIKE '%Ha%'",
+    "corrupted_clause": "select",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "farm",
+    "question": "How many farms are there?",
+    "original_query": "SELECT COUNT(*) FROM farm",
+    "corrupted_query": "SELECT COUNT(*) FROM city",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "farm",
+    "question": "How many farms are there?",
+    "original_query": "SELECT COUNT(*) FROM farm",
+    "corrupted_query": "SELECT MAX(*) FROM farm",
+    "corrupted_clause": "select",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "farm",
+    "question": "Count the number of farms.",
+    "original_query": "SELECT COUNT(*) FROM farm",
+    "corrupted_query": "SELECT COUNT(*) FROM city",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "farm",
+    "question": "Count the number of farms.",
+    "original_query": "SELECT COUNT(*) FROM farm",
+    "corrupted_query": "SELECT MAX(*) FROM farm",
+    "corrupted_clause": "select",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "farm",
+    "question": "List the total number of horses on farms in ascending order.",
+    "original_query": "SELECT Total_Horses FROM farm ORDER BY Total_Horses ASC",
+    "corrupted_query": "SELECT Total_Horses FROM city ORDER BY Total_Horses ASC",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "farm",
+    "question": "List the total number of horses on farms in ascending order.",
+    "original_query": "SELECT Total_Horses FROM farm ORDER BY Total_Horses ASC",
+    "corrupted_query": "SELECT Farm_ID FROM farm ORDER BY Total_Horses ASC",
+    "corrupted_clause": "select",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "farm",
+    "question": "What is the total horses record for each farm, sorted ascending?",
+    "original_query": "SELECT Total_Horses FROM farm ORDER BY Total_Horses ASC",
+    "corrupted_query": "SELECT Total_Horses FROM city ORDER BY Total_Horses ASC",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "farm",
+    "question": "What is the total horses record for each farm, sorted ascending?",
+    "original_query": "SELECT Total_Horses FROM farm ORDER BY Total_Horses ASC",
+    "corrupted_query": "SELECT Farm_ID FROM farm ORDER BY Total_Horses ASC",
+    "corrupted_clause": "select",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "farm",
+    "question": "What are the hosts of competitions whose theme is not \"Aliens\"?",
+    "original_query": "SELECT Hosts FROM farm_competition WHERE Theme != 'Aliens'",
+    "corrupted_query": "SELECT Hosts FROM city WHERE Theme != 'Aliens'",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "farm",
+    "question": "What are the hosts of competitions whose theme is not \"Aliens\"?",
+    "original_query": "SELECT Hosts FROM farm_competition WHERE Theme != 'Aliens'",
+    "corrupted_query": "SELECT Hosts FROM farm_competition WHERE Theme NOT != 'Aliens'",
+    "corrupted_clause": "where",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_where"
+  },
+  {
+    "db_id": "farm",
+    "question": "What are the hosts of competitions whose theme is not \"Aliens\"?",
+    "original_query": "SELECT Hosts FROM farm_competition WHERE Theme != 'Aliens'",
+    "corrupted_query": "SELECT Theme FROM farm_competition WHERE Theme != 'Aliens'",
+    "corrupted_clause": "select",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "farm",
+    "question": "Return the hosts of competitions for which the theme is not Aliens?",
+    "original_query": "SELECT Hosts FROM farm_competition WHERE Theme != 'Aliens'",
+    "corrupted_query": "SELECT Hosts FROM city WHERE Theme != 'Aliens'",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "farm",
+    "question": "Return the hosts of competitions for which the theme is not Aliens?",
+    "original_query": "SELECT Hosts FROM farm_competition WHERE Theme != 'Aliens'",
+    "corrupted_query": "SELECT Hosts FROM farm_competition WHERE Theme NOT != 'Aliens'",
+    "corrupted_clause": "where",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_where"
+  },
+  {
+    "db_id": "farm",
+    "question": "Return the hosts of competitions for which the theme is not Aliens?",
+    "original_query": "SELECT Hosts FROM farm_competition WHERE Theme != 'Aliens'",
+    "corrupted_query": "SELECT Theme FROM farm_competition WHERE Theme != 'Aliens'",
+    "corrupted_clause": "select",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "farm",
+    "question": "What are the themes of farm competitions sorted by year in ascending order?",
+    "original_query": "SELECT Theme FROM farm_competition ORDER BY Year ASC",
+    "corrupted_query": "SELECT Theme FROM city ORDER BY Year ASC",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "farm",
+    "question": "What are the themes of farm competitions sorted by year in ascending order?",
+    "original_query": "SELECT Theme FROM farm_competition ORDER BY Year ASC",
+    "corrupted_query": "SELECT Hosts FROM farm_competition ORDER BY Year ASC",
+    "corrupted_clause": "select",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "farm",
+    "question": "Return the themes of farm competitions, sorted by year ascending.",
+    "original_query": "SELECT Theme FROM farm_competition ORDER BY Year ASC",
+    "corrupted_query": "SELECT Theme FROM city ORDER BY Year ASC",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "farm",
+    "question": "Return the themes of farm competitions, sorted by year ascending.",
+    "original_query": "SELECT Theme FROM farm_competition ORDER BY Year ASC",
+    "corrupted_query": "SELECT Hosts FROM farm_competition ORDER BY Year ASC",
+    "corrupted_clause": "select",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "farm",
+    "question": "What is the average number of working horses of farms with more than 5000 total number of horses?",
+    "original_query": "SELECT AVG(Working_Horses) FROM farm WHERE Total_Horses > 5000.0",
+    "corrupted_query": "SELECT AVG(Working_Horses) FROM city WHERE Total_Horses > 5000.0",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "farm",
+    "question": "What is the average number of working horses of farms with more than 5000 total number of horses?",
+    "original_query": "SELECT AVG(Working_Horses) FROM farm WHERE Total_Horses > 5000.0",
+    "corrupted_query": "SELECT AVG(Working_Horses) FROM farm WHERE Total_Horses NOT > 5000.0",
+    "corrupted_clause": "where",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_where"
+  },
+  {
+    "db_id": "farm",
+    "question": "What is the average number of working horses of farms with more than 5000 total number of horses?",
+    "original_query": "SELECT AVG(Working_Horses) FROM farm WHERE Total_Horses > 5000.0",
+    "corrupted_query": "SELECT MAX(Working_Horses) FROM farm WHERE Total_Horses > 5000.0",
+    "corrupted_clause": "select",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "farm",
+    "question": "Give the average number of working horses on farms with more than 5000 total horses.",
+    "original_query": "SELECT AVG(Working_Horses) FROM farm WHERE Total_Horses > 5000.0",
+    "corrupted_query": "SELECT AVG(Working_Horses) FROM city WHERE Total_Horses > 5000.0",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "farm",
+    "question": "Give the average number of working horses on farms with more than 5000 total horses.",
+    "original_query": "SELECT AVG(Working_Horses) FROM farm WHERE Total_Horses > 5000.0",
+    "corrupted_query": "SELECT AVG(Working_Horses) FROM farm WHERE Total_Horses NOT > 5000.0",
+    "corrupted_clause": "where",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_where"
+  },
+  {
+    "db_id": "farm",
+    "question": "Give the average number of working horses on farms with more than 5000 total horses.",
+    "original_query": "SELECT AVG(Working_Horses) FROM farm WHERE Total_Horses > 5000.0",
+    "corrupted_query": "SELECT MAX(Working_Horses) FROM farm WHERE Total_Horses > 5000.0",
+    "corrupted_clause": "select",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "farm",
+    "question": "What are the maximum and minimum number of cows across all farms.",
+    "original_query": "SELECT MAX(Cows), MIN(Cows) FROM farm",
+    "corrupted_query": "SELECT MAX(Cows), MIN(Cows) FROM city",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "farm",
+    "question": "What are the maximum and minimum number of cows across all farms.",
+    "original_query": "SELECT MAX(Cows), MIN(Cows) FROM farm",
+    "corrupted_query": "SELECT MIN(Cows), MIN(Cows) FROM farm",
+    "corrupted_clause": "select",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "farm",
+    "question": "Return the maximum and minimum number of cows across all farms.",
+    "original_query": "SELECT MAX(Cows), MIN(Cows) FROM farm",
+    "corrupted_query": "SELECT MAX(Cows), MIN(Cows) FROM city",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "farm",
+    "question": "Return the maximum and minimum number of cows across all farms.",
+    "original_query": "SELECT MAX(Cows), MIN(Cows) FROM farm",
+    "corrupted_query": "SELECT MIN(Cows), MIN(Cows) FROM farm",
+    "corrupted_clause": "select",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "farm",
+    "question": "How many different statuses do cities have?",
+    "original_query": "SELECT COUNT(DISTINCT Status) FROM city",
+    "corrupted_query": "SELECT COUNT(DISTINCT Status) FROM farm",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "farm",
+    "question": "How many different statuses do cities have?",
+    "original_query": "SELECT COUNT(DISTINCT Status) FROM city",
+    "corrupted_query": "SELECT MAX(DISTINCT Status) FROM city",
+    "corrupted_clause": "select",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "farm",
+    "question": "Count the number of different statuses.",
+    "original_query": "SELECT COUNT(DISTINCT Status) FROM city",
+    "corrupted_query": "SELECT COUNT(DISTINCT Status) FROM farm",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "farm",
+    "question": "Count the number of different statuses.",
+    "original_query": "SELECT COUNT(DISTINCT Status) FROM city",
+    "corrupted_query": "SELECT MAX(DISTINCT Status) FROM city",
+    "corrupted_clause": "select",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "farm",
+    "question": "List official names of cities in descending order of population.",
+    "original_query": "SELECT Official_Name FROM city ORDER BY Population DESC",
+    "corrupted_query": "SELECT Official_Name FROM farm ORDER BY Population DESC",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "farm",
+    "question": "List official names of cities in descending order of population.",
+    "original_query": "SELECT Official_Name FROM city ORDER BY Population DESC",
+    "corrupted_query": "SELECT Status FROM city ORDER BY Population DESC",
+    "corrupted_clause": "select",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "farm",
+    "question": "What are the official names of cities, ordered descending by population?",
+    "original_query": "SELECT Official_Name FROM city ORDER BY Population DESC",
+    "corrupted_query": "SELECT Official_Name FROM farm ORDER BY Population DESC",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "farm",
+    "question": "What are the official names of cities, ordered descending by population?",
+    "original_query": "SELECT Official_Name FROM city ORDER BY Population DESC",
+    "corrupted_query": "SELECT Status FROM city ORDER BY Population DESC",
+    "corrupted_clause": "select",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "farm",
+    "question": "List the official name and status of the city with the largest population.",
+    "original_query": "SELECT Official_Name, Status FROM city ORDER BY Population DESC LIMIT 1",
+    "corrupted_query": "SELECT Official_Name, Status FROM farm ORDER BY Population DESC LIMIT 1",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "farm",
+    "question": "List the official name and status of the city with the largest population.",
+    "original_query": "SELECT Official_Name, Status FROM city ORDER BY Population DESC LIMIT 1",
+    "corrupted_query": "SELECT Status FROM city ORDER BY Population DESC LIMIT 1",
+    "corrupted_clause": "select",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "farm",
+    "question": "List the official name and status of the city with the largest population.",
+    "original_query": "SELECT Official_Name, Status FROM city ORDER BY Population DESC LIMIT 1",
+    "corrupted_query": "SELECT Official_Name, Status FROM city ORDER BY Population ASC LIMIT 1",
+    "corrupted_clause": "orderBy",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_orderBy"
+  },
+  {
+    "db_id": "farm",
+    "question": "What is the official name and status of the city with the most residents?",
+    "original_query": "SELECT Official_Name, Status FROM city ORDER BY Population DESC LIMIT 1",
+    "corrupted_query": "SELECT Official_Name, Status FROM farm ORDER BY Population DESC LIMIT 1",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "farm",
+    "question": "What is the official name and status of the city with the most residents?",
+    "original_query": "SELECT Official_Name, Status FROM city ORDER BY Population DESC LIMIT 1",
+    "corrupted_query": "SELECT Status FROM city ORDER BY Population DESC LIMIT 1",
+    "corrupted_clause": "select",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "farm",
+    "question": "What is the official name and status of the city with the most residents?",
+    "original_query": "SELECT Official_Name, Status FROM city ORDER BY Population DESC LIMIT 1",
+    "corrupted_query": "SELECT Official_Name, Status FROM city ORDER BY Population ASC LIMIT 1",
+    "corrupted_clause": "orderBy",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_orderBy"
+  },
+  {
+    "db_id": "farm",
+    "question": "Show the years and the official names of the host cities of competitions.",
+    "original_query": "SELECT farm_competition.Year, city.Official_Name FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID",
+    "corrupted_query": "SELECT Year, Official_Name FROM city",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "farm",
+    "question": "Show the years and the official names of the host cities of competitions.",
+    "original_query": "SELECT farm_competition.Year, city.Official_Name FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID",
+    "corrupted_query": "SELECT city.Official_Name FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID",
+    "corrupted_clause": "select",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "farm",
+    "question": "Give the years and official names of the cities of each competition.",
+    "original_query": "SELECT farm_competition.Year, city.Official_Name FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID",
+    "corrupted_query": "SELECT Year, Official_Name FROM city",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "farm",
+    "question": "Give the years and official names of the cities of each competition.",
+    "original_query": "SELECT farm_competition.Year, city.Official_Name FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID",
+    "corrupted_query": "SELECT city.Official_Name FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID",
+    "corrupted_clause": "select",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "farm",
+    "question": "Show the official names of the cities that have hosted more than one competition.",
+    "original_query": "SELECT city.Official_Name FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID GROUP BY farm_competition.Host_city_ID HAVING COUNT(*) > 1.0",
+    "corrupted_query": "SELECT Official_Name FROM city GROUP BY Host_city_ID HAVING COUNT(*) > 1.0",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "farm",
+    "question": "Show the official names of the cities that have hosted more than one competition.",
+    "original_query": "SELECT city.Official_Name FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID GROUP BY farm_competition.Host_city_ID HAVING COUNT(*) > 1.0",
+    "corrupted_query": "SELECT city.Official_Name FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID GROUP BY farm_competition.Competition_ID HAVING COUNT(*) > 1.0",
+    "corrupted_clause": "groupBy",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_groupBy"
+  },
+  {
+    "db_id": "farm",
+    "question": "Show the official names of the cities that have hosted more than one competition.",
+    "original_query": "SELECT city.Official_Name FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID GROUP BY farm_competition.Host_city_ID HAVING COUNT(*) > 1.0",
+    "corrupted_query": "SELECT city.Official_Name FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID GROUP BY farm_competition.Host_city_ID HAVING COUNT(*) < 1.0",
+    "corrupted_clause": "having",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_having"
+  },
+  {
+    "db_id": "farm",
+    "question": "Show the official names of the cities that have hosted more than one competition.",
+    "original_query": "SELECT city.Official_Name FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID GROUP BY farm_competition.Host_city_ID HAVING COUNT(*) > 1.0",
+    "corrupted_query": "SELECT city.Status FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID GROUP BY farm_competition.Host_city_ID HAVING COUNT(*) > 1.0",
+    "corrupted_clause": "select",
+    "corrupted_position": 3,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "farm",
+    "question": "What are the official names of cities that have hosted more than one competition?",
+    "original_query": "SELECT city.Official_Name FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID GROUP BY farm_competition.Host_city_ID HAVING COUNT(*) > 1.0",
+    "corrupted_query": "SELECT Official_Name FROM city GROUP BY Host_city_ID HAVING COUNT(*) > 1.0",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "farm",
+    "question": "What are the official names of cities that have hosted more than one competition?",
+    "original_query": "SELECT city.Official_Name FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID GROUP BY farm_competition.Host_city_ID HAVING COUNT(*) > 1.0",
+    "corrupted_query": "SELECT city.Official_Name FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID GROUP BY farm_competition.Competition_ID HAVING COUNT(*) > 1.0",
+    "corrupted_clause": "groupBy",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_groupBy"
+  },
+  {
+    "db_id": "farm",
+    "question": "What are the official names of cities that have hosted more than one competition?",
+    "original_query": "SELECT city.Official_Name FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID GROUP BY farm_competition.Host_city_ID HAVING COUNT(*) > 1.0",
+    "corrupted_query": "SELECT city.Official_Name FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID GROUP BY farm_competition.Host_city_ID HAVING COUNT(*) < 1.0",
+    "corrupted_clause": "having",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_having"
+  },
+  {
+    "db_id": "farm",
+    "question": "What are the official names of cities that have hosted more than one competition?",
+    "original_query": "SELECT city.Official_Name FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID GROUP BY farm_competition.Host_city_ID HAVING COUNT(*) > 1.0",
+    "corrupted_query": "SELECT city.Status FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID GROUP BY farm_competition.Host_city_ID HAVING COUNT(*) > 1.0",
+    "corrupted_clause": "select",
+    "corrupted_position": 3,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "farm",
+    "question": "Show the status of the city that has hosted the greatest number of competitions.",
+    "original_query": "SELECT city.Status FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID GROUP BY farm_competition.Host_city_ID ORDER BY COUNT(*) DESC LIMIT 1",
+    "corrupted_query": "SELECT Status FROM city GROUP BY Host_city_ID ORDER BY COUNT(*) DESC LIMIT 1",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "farm",
+    "question": "Show the status of the city that has hosted the greatest number of competitions.",
+    "original_query": "SELECT city.Status FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID GROUP BY farm_competition.Host_city_ID ORDER BY COUNT(*) DESC LIMIT 1",
+    "corrupted_query": "SELECT city.Status FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID GROUP BY farm_competition.Competition_ID ORDER BY COUNT(*) DESC LIMIT 1",
+    "corrupted_clause": "groupBy",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_groupBy"
+  },
+  {
+    "db_id": "farm",
+    "question": "Show the status of the city that has hosted the greatest number of competitions.",
+    "original_query": "SELECT city.Status FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID GROUP BY farm_competition.Host_city_ID ORDER BY COUNT(*) DESC LIMIT 1",
+    "corrupted_query": "SELECT city.Official_Name FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID GROUP BY farm_competition.Host_city_ID ORDER BY COUNT(*) DESC LIMIT 1",
+    "corrupted_clause": "select",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "farm",
+    "question": "Show the status of the city that has hosted the greatest number of competitions.",
+    "original_query": "SELECT city.Status FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID GROUP BY farm_competition.Host_city_ID ORDER BY COUNT(*) DESC LIMIT 1",
+    "corrupted_query": "SELECT city.Status FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID GROUP BY farm_competition.Host_city_ID ORDER BY COUNT(*) ASC LIMIT 1",
+    "corrupted_clause": "orderBy",
+    "corrupted_position": 3,
+    "corruption_strategy": "corrupt_orderBy"
+  },
+  {
+    "db_id": "farm",
+    "question": "What is the status of the city that has hosted the most competitions?",
+    "original_query": "SELECT city.Status FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID GROUP BY farm_competition.Host_city_ID ORDER BY COUNT(*) DESC LIMIT 1",
+    "corrupted_query": "SELECT Status FROM city GROUP BY Host_city_ID ORDER BY COUNT(*) DESC LIMIT 1",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "farm",
+    "question": "What is the status of the city that has hosted the most competitions?",
+    "original_query": "SELECT city.Status FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID GROUP BY farm_competition.Host_city_ID ORDER BY COUNT(*) DESC LIMIT 1",
+    "corrupted_query": "SELECT city.Status FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID GROUP BY farm_competition.Competition_ID ORDER BY COUNT(*) DESC LIMIT 1",
+    "corrupted_clause": "groupBy",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_groupBy"
+  },
+  {
+    "db_id": "farm",
+    "question": "What is the status of the city that has hosted the most competitions?",
+    "original_query": "SELECT city.Status FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID GROUP BY farm_competition.Host_city_ID ORDER BY COUNT(*) DESC LIMIT 1",
+    "corrupted_query": "SELECT city.Official_Name FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID GROUP BY farm_competition.Host_city_ID ORDER BY COUNT(*) DESC LIMIT 1",
+    "corrupted_clause": "select",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "farm",
+    "question": "What is the status of the city that has hosted the most competitions?",
+    "original_query": "SELECT city.Status FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID GROUP BY farm_competition.Host_city_ID ORDER BY COUNT(*) DESC LIMIT 1",
+    "corrupted_query": "SELECT city.Status FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID GROUP BY farm_competition.Host_city_ID ORDER BY COUNT(*) ASC LIMIT 1",
+    "corrupted_clause": "orderBy",
+    "corrupted_position": 3,
+    "corruption_strategy": "corrupt_orderBy"
+  },
+  {
+    "db_id": "farm",
+    "question": "Please show the themes of competitions with host cities having populations larger than 1000.",
+    "original_query": "SELECT farm_competition.Theme FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID AND city.Population > 1000.0",
+    "corrupted_query": "SELECT Theme FROM city WHERE Population > 1000.0",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "farm",
+    "question": "Please show the themes of competitions with host cities having populations larger than 1000.",
+    "original_query": "SELECT farm_competition.Theme FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID AND city.Population > 1000.0",
+    "corrupted_query": "SELECT farm_competition.Theme FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID AND city.Population NOT > 1000.0",
+    "corrupted_clause": "where",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_where"
+  },
+  {
+    "db_id": "farm",
+    "question": "Please show the themes of competitions with host cities having populations larger than 1000.",
+    "original_query": "SELECT farm_competition.Theme FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID AND city.Population > 1000.0",
+    "corrupted_query": "SELECT farm_competition.Hosts FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID AND city.Population > 1000.0",
+    "corrupted_clause": "select",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "farm",
+    "question": "What are the themes of competitions that have corresponding host cities with more than 1000 residents?",
+    "original_query": "SELECT farm_competition.Theme FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID AND city.Population > 1000.0",
+    "corrupted_query": "SELECT Theme FROM city WHERE Population > 1000.0",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "farm",
+    "question": "What are the themes of competitions that have corresponding host cities with more than 1000 residents?",
+    "original_query": "SELECT farm_competition.Theme FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID AND city.Population > 1000.0",
+    "corrupted_query": "SELECT farm_competition.Theme FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID AND city.Population NOT > 1000.0",
+    "corrupted_clause": "where",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_where"
+  },
+  {
+    "db_id": "farm",
+    "question": "What are the themes of competitions that have corresponding host cities with more than 1000 residents?",
+    "original_query": "SELECT farm_competition.Theme FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID AND city.Population > 1000.0",
+    "corrupted_query": "SELECT farm_competition.Hosts FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID AND city.Population > 1000.0",
+    "corrupted_clause": "select",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "farm",
+    "question": "Please show the different statuses of cities and the average population of cities with each status.",
+    "original_query": "SELECT Status, AVG(Population) FROM city GROUP BY Status",
+    "corrupted_query": "SELECT Status, AVG(Population) FROM farm GROUP BY Status",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "farm",
+    "question": "Please show the different statuses of cities and the average population of cities with each status.",
+    "original_query": "SELECT Status, AVG(Population) FROM city GROUP BY Status",
+    "corrupted_query": "SELECT Status, AVG(Population) FROM city GROUP BY City_ID",
+    "corrupted_clause": "groupBy",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_groupBy"
+  },
+  {
+    "db_id": "farm",
+    "question": "Please show the different statuses of cities and the average population of cities with each status.",
+    "original_query": "SELECT Status, AVG(Population) FROM city GROUP BY Status",
+    "corrupted_query": "SELECT Status, MAX(Population) FROM city GROUP BY Status",
+    "corrupted_clause": "select",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "farm",
+    "question": "What are the statuses and average populations of each city?",
+    "original_query": "SELECT Status, AVG(Population) FROM city GROUP BY Status",
+    "corrupted_query": "SELECT Status, AVG(Population) FROM farm GROUP BY Status",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "farm",
+    "question": "What are the statuses and average populations of each city?",
+    "original_query": "SELECT Status, AVG(Population) FROM city GROUP BY Status",
+    "corrupted_query": "SELECT Status, AVG(Population) FROM city GROUP BY City_ID",
+    "corrupted_clause": "groupBy",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_groupBy"
+  },
+  {
+    "db_id": "farm",
+    "question": "What are the statuses and average populations of each city?",
+    "original_query": "SELECT Status, AVG(Population) FROM city GROUP BY Status",
+    "corrupted_query": "SELECT Status, MAX(Population) FROM city GROUP BY Status",
+    "corrupted_clause": "select",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "farm",
+    "question": "Please show the different statuses, ordered by the number of cities that have each.",
+    "original_query": "SELECT Status FROM city GROUP BY Status ORDER BY COUNT(*) ASC",
+    "corrupted_query": "SELECT Status FROM farm GROUP BY Status ORDER BY COUNT(*) ASC",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "farm",
+    "question": "Please show the different statuses, ordered by the number of cities that have each.",
+    "original_query": "SELECT Status FROM city GROUP BY Status ORDER BY COUNT(*) ASC",
+    "corrupted_query": "SELECT Status FROM city GROUP BY City_ID ORDER BY COUNT(*) ASC",
+    "corrupted_clause": "groupBy",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_groupBy"
+  },
+  {
+    "db_id": "farm",
+    "question": "Please show the different statuses, ordered by the number of cities that have each.",
+    "original_query": "SELECT Status FROM city GROUP BY Status ORDER BY COUNT(*) ASC",
+    "corrupted_query": "SELECT Official_Name FROM city GROUP BY Status ORDER BY COUNT(*) ASC",
+    "corrupted_clause": "select",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "farm",
+    "question": "Return the different statuses of cities, ascending by frequency.",
+    "original_query": "SELECT Status FROM city GROUP BY Status ORDER BY COUNT(*) ASC",
+    "corrupted_query": "SELECT Status FROM farm GROUP BY Status ORDER BY COUNT(*) ASC",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "farm",
+    "question": "Return the different statuses of cities, ascending by frequency.",
+    "original_query": "SELECT Status FROM city GROUP BY Status ORDER BY COUNT(*) ASC",
+    "corrupted_query": "SELECT Status FROM city GROUP BY City_ID ORDER BY COUNT(*) ASC",
+    "corrupted_clause": "groupBy",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_groupBy"
+  },
+  {
+    "db_id": "farm",
+    "question": "Return the different statuses of cities, ascending by frequency.",
+    "original_query": "SELECT Status FROM city GROUP BY Status ORDER BY COUNT(*) ASC",
+    "corrupted_query": "SELECT Official_Name FROM city GROUP BY Status ORDER BY COUNT(*) ASC",
+    "corrupted_clause": "select",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "farm",
+    "question": "List the most common type of Status across cities.",
+    "original_query": "SELECT Status FROM city GROUP BY Status ORDER BY COUNT(*) DESC LIMIT 1",
+    "corrupted_query": "SELECT Status FROM farm GROUP BY Status ORDER BY COUNT(*) DESC LIMIT 1",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "farm",
+    "question": "List the most common type of Status across cities.",
+    "original_query": "SELECT Status FROM city GROUP BY Status ORDER BY COUNT(*) DESC LIMIT 1",
+    "corrupted_query": "SELECT Status FROM city GROUP BY City_ID ORDER BY COUNT(*) DESC LIMIT 1",
+    "corrupted_clause": "groupBy",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_groupBy"
+  },
+  {
+    "db_id": "farm",
+    "question": "List the most common type of Status across cities.",
+    "original_query": "SELECT Status FROM city GROUP BY Status ORDER BY COUNT(*) DESC LIMIT 1",
+    "corrupted_query": "SELECT Official_Name FROM city GROUP BY Status ORDER BY COUNT(*) DESC LIMIT 1",
+    "corrupted_clause": "select",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "farm",
+    "question": "List the most common type of Status across cities.",
+    "original_query": "SELECT Status FROM city GROUP BY Status ORDER BY COUNT(*) DESC LIMIT 1",
+    "corrupted_query": "SELECT Status FROM city GROUP BY Status ORDER BY COUNT(*) ASC LIMIT 1",
+    "corrupted_clause": "orderBy",
+    "corrupted_position": 3,
+    "corruption_strategy": "corrupt_orderBy"
+  },
+  {
+    "db_id": "farm",
+    "question": "What is the most common status across all cities?",
+    "original_query": "SELECT Status FROM city GROUP BY Status ORDER BY COUNT(*) DESC LIMIT 1",
+    "corrupted_query": "SELECT Status FROM farm GROUP BY Status ORDER BY COUNT(*) DESC LIMIT 1",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "farm",
+    "question": "What is the most common status across all cities?",
+    "original_query": "SELECT Status FROM city GROUP BY Status ORDER BY COUNT(*) DESC LIMIT 1",
+    "corrupted_query": "SELECT Status FROM city GROUP BY City_ID ORDER BY COUNT(*) DESC LIMIT 1",
+    "corrupted_clause": "groupBy",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_groupBy"
+  },
+  {
+    "db_id": "farm",
+    "question": "What is the most common status across all cities?",
+    "original_query": "SELECT Status FROM city GROUP BY Status ORDER BY COUNT(*) DESC LIMIT 1",
+    "corrupted_query": "SELECT Official_Name FROM city GROUP BY Status ORDER BY COUNT(*) DESC LIMIT 1",
+    "corrupted_clause": "select",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "farm",
+    "question": "What is the most common status across all cities?",
+    "original_query": "SELECT Status FROM city GROUP BY Status ORDER BY COUNT(*) DESC LIMIT 1",
+    "corrupted_query": "SELECT Status FROM city GROUP BY Status ORDER BY COUNT(*) ASC LIMIT 1",
+    "corrupted_clause": "orderBy",
+    "corrupted_position": 3,
+    "corruption_strategy": "corrupt_orderBy"
+  },
+  {
+    "db_id": "farm",
+    "question": "List the official names of cities that have not held any competition.",
+    "original_query": "SELECT Official_Name FROM city WHERE City_ID NOT IN ((SELECT Host_city_ID FROM farm_competition))",
+    "corrupted_query": "SELECT Official_Name FROM farm WHERE City_ID NOT IN ((SELECT Host_city_ID FROM farm_competition))",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "farm",
+    "question": "List the official names of cities that have not held any competition.",
+    "original_query": "SELECT Official_Name FROM city WHERE City_ID NOT IN ((SELECT Host_city_ID FROM farm_competition))",
+    "corrupted_query": "SELECT Official_Name FROM city WHERE City_ID IN ((SELECT Host_city_ID FROM farm_competition))",
+    "corrupted_clause": "where",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_where"
+  },
+  {
+    "db_id": "farm",
+    "question": "List the official names of cities that have not held any competition.",
+    "original_query": "SELECT Official_Name FROM city WHERE City_ID NOT IN ((SELECT Host_city_ID FROM farm_competition))",
+    "corrupted_query": "SELECT Status FROM city WHERE City_ID NOT IN ((SELECT Host_city_ID FROM farm_competition))",
+    "corrupted_clause": "select",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "farm",
+    "question": "What are the official names of cities that have not hosted a farm competition?",
+    "original_query": "SELECT Official_Name FROM city WHERE City_ID NOT IN ((SELECT Host_city_ID FROM farm_competition))",
+    "corrupted_query": "SELECT Official_Name FROM farm WHERE City_ID NOT IN ((SELECT Host_city_ID FROM farm_competition))",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "farm",
+    "question": "What are the official names of cities that have not hosted a farm competition?",
+    "original_query": "SELECT Official_Name FROM city WHERE City_ID NOT IN ((SELECT Host_city_ID FROM farm_competition))",
+    "corrupted_query": "SELECT Official_Name FROM city WHERE City_ID IN ((SELECT Host_city_ID FROM farm_competition))",
+    "corrupted_clause": "where",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_where"
+  },
+  {
+    "db_id": "farm",
+    "question": "What are the official names of cities that have not hosted a farm competition?",
+    "original_query": "SELECT Official_Name FROM city WHERE City_ID NOT IN ((SELECT Host_city_ID FROM farm_competition))",
+    "corrupted_query": "SELECT Status FROM city WHERE City_ID NOT IN ((SELECT Host_city_ID FROM farm_competition))",
+    "corrupted_clause": "select",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "farm",
+    "question": "Show the status shared by cities with population bigger than 1500 and smaller than 500.",
+    "original_query": "SELECT Status FROM city WHERE Population > 1500.0 INTERSECT SELECT Status FROM city WHERE Population < 500.0",
+    "corrupted_query": "SELECT Status FROM farm WHERE Population > 1500.0 INTERSECT SELECT Status FROM city WHERE Population < 500.0",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "farm",
+    "question": "Show the status shared by cities with population bigger than 1500 and smaller than 500.",
+    "original_query": "SELECT Status FROM city WHERE Population > 1500.0 INTERSECT SELECT Status FROM city WHERE Population < 500.0",
+    "corrupted_query": "SELECT Status FROM city WHERE Population NOT > 1500.0 INTERSECT SELECT Status FROM city WHERE Population < 500.0",
+    "corrupted_clause": "where",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_where"
+  },
+  {
+    "db_id": "farm",
+    "question": "Show the status shared by cities with population bigger than 1500 and smaller than 500.",
+    "original_query": "SELECT Status FROM city WHERE Population > 1500.0 INTERSECT SELECT Status FROM city WHERE Population < 500.0",
+    "corrupted_query": "SELECT Official_Name FROM city WHERE Population > 1500.0 INTERSECT SELECT Status FROM city WHERE Population < 500.0",
+    "corrupted_clause": "select",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "farm",
+    "question": "Which statuses correspond to both cities that have a population over 1500 and cities that have a population lower than 500?",
+    "original_query": "SELECT Status FROM city WHERE Population > 1500.0 INTERSECT SELECT Status FROM city WHERE Population < 500.0",
+    "corrupted_query": "SELECT Status FROM farm WHERE Population > 1500.0 INTERSECT SELECT Status FROM city WHERE Population < 500.0",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "farm",
+    "question": "Which statuses correspond to both cities that have a population over 1500 and cities that have a population lower than 500?",
+    "original_query": "SELECT Status FROM city WHERE Population > 1500.0 INTERSECT SELECT Status FROM city WHERE Population < 500.0",
+    "corrupted_query": "SELECT Status FROM city WHERE Population NOT > 1500.0 INTERSECT SELECT Status FROM city WHERE Population < 500.0",
+    "corrupted_clause": "where",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_where"
+  },
+  {
+    "db_id": "farm",
+    "question": "Which statuses correspond to both cities that have a population over 1500 and cities that have a population lower than 500?",
+    "original_query": "SELECT Status FROM city WHERE Population > 1500.0 INTERSECT SELECT Status FROM city WHERE Population < 500.0",
+    "corrupted_query": "SELECT Official_Name FROM city WHERE Population > 1500.0 INTERSECT SELECT Status FROM city WHERE Population < 500.0",
+    "corrupted_clause": "select",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "farm",
+    "question": "Find the official names of cities with population bigger than 1500 or smaller than 500.",
+    "original_query": "SELECT Official_Name FROM city WHERE Population > 1500.0 OR Population < 500.0",
+    "corrupted_query": "SELECT Official_Name FROM farm WHERE Population > 1500.0 OR Population < 500.0",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "farm",
+    "question": "Find the official names of cities with population bigger than 1500 or smaller than 500.",
+    "original_query": "SELECT Official_Name FROM city WHERE Population > 1500.0 OR Population < 500.0",
+    "corrupted_query": "SELECT Official_Name FROM city WHERE Population NOT > 1500.0 OR Population < 500.0",
+    "corrupted_clause": "where",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_where"
+  },
+  {
+    "db_id": "farm",
+    "question": "Find the official names of cities with population bigger than 1500 or smaller than 500.",
+    "original_query": "SELECT Official_Name FROM city WHERE Population > 1500.0 OR Population < 500.0",
+    "corrupted_query": "SELECT Status FROM city WHERE Population > 1500.0 OR Population < 500.0",
+    "corrupted_clause": "select",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "farm",
+    "question": "What are the official names of cities that have population over 1500 or less than 500?",
+    "original_query": "SELECT Official_Name FROM city WHERE Population > 1500.0 OR Population < 500.0",
+    "corrupted_query": "SELECT Official_Name FROM farm WHERE Population > 1500.0 OR Population < 500.0",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "farm",
+    "question": "What are the official names of cities that have population over 1500 or less than 500?",
+    "original_query": "SELECT Official_Name FROM city WHERE Population > 1500.0 OR Population < 500.0",
+    "corrupted_query": "SELECT Official_Name FROM city WHERE Population NOT > 1500.0 OR Population < 500.0",
+    "corrupted_clause": "where",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_where"
+  },
+  {
+    "db_id": "farm",
+    "question": "What are the official names of cities that have population over 1500 or less than 500?",
+    "original_query": "SELECT Official_Name FROM city WHERE Population > 1500.0 OR Population < 500.0",
+    "corrupted_query": "SELECT Status FROM city WHERE Population > 1500.0 OR Population < 500.0",
+    "corrupted_clause": "select",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "farm",
+    "question": "Show the census ranking of cities whose status are not \"Village\".",
+    "original_query": "SELECT Census_Ranking FROM city WHERE Status != 'Village'",
+    "corrupted_query": "SELECT Census_Ranking FROM farm WHERE Status != 'Village'",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "farm",
+    "question": "Show the census ranking of cities whose status are not \"Village\".",
+    "original_query": "SELECT Census_Ranking FROM city WHERE Status != 'Village'",
+    "corrupted_query": "SELECT Census_Ranking FROM city WHERE Status NOT != 'Village'",
+    "corrupted_clause": "where",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_where"
+  },
+  {
+    "db_id": "farm",
+    "question": "Show the census ranking of cities whose status are not \"Village\".",
+    "original_query": "SELECT Census_Ranking FROM city WHERE Status != 'Village'",
+    "corrupted_query": "SELECT Official_Name FROM city WHERE Status != 'Village'",
+    "corrupted_clause": "select",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "farm",
+    "question": "What are the census rankings of cities that do not have the status \"Village\"?",
+    "original_query": "SELECT Census_Ranking FROM city WHERE Status != 'Village'",
+    "corrupted_query": "SELECT Census_Ranking FROM farm WHERE Status != 'Village'",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "farm",
+    "question": "What are the census rankings of cities that do not have the status \"Village\"?",
+    "original_query": "SELECT Census_Ranking FROM city WHERE Status != 'Village'",
+    "corrupted_query": "SELECT Census_Ranking FROM city WHERE Status NOT != 'Village'",
+    "corrupted_clause": "where",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_where"
+  },
+  {
+    "db_id": "farm",
+    "question": "What are the census rankings of cities that do not have the status \"Village\"?",
+    "original_query": "SELECT Census_Ranking FROM city WHERE Status != 'Village'",
+    "corrupted_query": "SELECT Official_Name FROM city WHERE Status != 'Village'",
+    "corrupted_clause": "select",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "which course has most number of registered students?",
+    "original_query": "SELECT Courses.course_name FROM Courses, Student_Course_Registrations WHERE Courses.course_id = Student_Course_Registrations.course_id GROUP BY Courses.course_id ORDER BY COUNT(*) DESC LIMIT 1",
+    "corrupted_query": "SELECT Courses.course_id FROM Courses, Student_Course_Registrations WHERE Courses.course_id = Student_Course_Registrations.course_id GROUP BY Courses.course_id ORDER BY COUNT(*) DESC LIMIT 1",
+    "corrupted_clause": "select",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "which course has most number of registered students?",
+    "original_query": "SELECT Courses.course_name FROM Courses, Student_Course_Registrations WHERE Courses.course_id = Student_Course_Registrations.course_id GROUP BY Courses.course_id ORDER BY COUNT(*) DESC LIMIT 1",
+    "corrupted_query": "SELECT Courses.course_name FROM Courses, Student_Course_Registrations WHERE Courses.course_id = Student_Course_Registrations.course_id GROUP BY Courses.course_id ORDER BY COUNT(*) ASC LIMIT 1",
+    "corrupted_clause": "orderBy",
+    "corrupted_position": 3,
+    "corruption_strategy": "corrupt_orderBy"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What is the name of the course with the most registered students?",
+    "original_query": "SELECT Courses.course_name FROM Courses, Student_Course_Registrations WHERE Courses.course_id = Student_Course_Registrations.course_id GROUP BY Courses.course_id ORDER BY COUNT(*) DESC LIMIT 1",
+    "corrupted_query": "SELECT Courses.course_id FROM Courses, Student_Course_Registrations WHERE Courses.course_id = Student_Course_Registrations.course_id GROUP BY Courses.course_id ORDER BY COUNT(*) DESC LIMIT 1",
+    "corrupted_clause": "select",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What is the name of the course with the most registered students?",
+    "original_query": "SELECT Courses.course_name FROM Courses, Student_Course_Registrations WHERE Courses.course_id = Student_Course_Registrations.course_id GROUP BY Courses.course_id ORDER BY COUNT(*) DESC LIMIT 1",
+    "corrupted_query": "SELECT Courses.course_name FROM Courses, Student_Course_Registrations WHERE Courses.course_id = Student_Course_Registrations.course_id GROUP BY Courses.course_id ORDER BY COUNT(*) ASC LIMIT 1",
+    "corrupted_clause": "orderBy",
+    "corrupted_position": 3,
+    "corruption_strategy": "corrupt_orderBy"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "what is id of students who registered some courses but the least number of courses in these students?",
+    "original_query": "SELECT student_id FROM Student_Course_Registrations GROUP BY student_id ORDER BY COUNT(*) ASC LIMIT 1",
+    "corrupted_query": "SELECT student_id FROM Addresses GROUP BY student_id ORDER BY COUNT(*) ASC LIMIT 1",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "what is id of students who registered some courses but the least number of courses in these students?",
+    "original_query": "SELECT student_id FROM Student_Course_Registrations GROUP BY student_id ORDER BY COUNT(*) ASC LIMIT 1",
+    "corrupted_query": "SELECT student_id FROM Student_Course_Registrations GROUP BY course_id ORDER BY COUNT(*) ASC LIMIT 1",
+    "corrupted_clause": "groupBy",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_groupBy"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "what is id of students who registered some courses but the least number of courses in these students?",
+    "original_query": "SELECT student_id FROM Student_Course_Registrations GROUP BY student_id ORDER BY COUNT(*) ASC LIMIT 1",
+    "corrupted_query": "SELECT course_id FROM Student_Course_Registrations GROUP BY student_id ORDER BY COUNT(*) ASC LIMIT 1",
+    "corrupted_clause": "select",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "what is id of students who registered some courses but the least number of courses in these students?",
+    "original_query": "SELECT student_id FROM Student_Course_Registrations GROUP BY student_id ORDER BY COUNT(*) ASC LIMIT 1",
+    "corrupted_query": "SELECT student_id FROM Student_Course_Registrations GROUP BY student_id ORDER BY COUNT(*) DESC LIMIT 1",
+    "corrupted_clause": "orderBy",
+    "corrupted_position": 3,
+    "corruption_strategy": "corrupt_orderBy"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What are the ids of the students who registered for some courses but had the least number of courses for all students?",
+    "original_query": "SELECT student_id FROM Student_Course_Registrations GROUP BY student_id ORDER BY COUNT(*) ASC LIMIT 1",
+    "corrupted_query": "SELECT student_id FROM Addresses GROUP BY student_id ORDER BY COUNT(*) ASC LIMIT 1",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What are the ids of the students who registered for some courses but had the least number of courses for all students?",
+    "original_query": "SELECT student_id FROM Student_Course_Registrations GROUP BY student_id ORDER BY COUNT(*) ASC LIMIT 1",
+    "corrupted_query": "SELECT student_id FROM Student_Course_Registrations GROUP BY course_id ORDER BY COUNT(*) ASC LIMIT 1",
+    "corrupted_clause": "groupBy",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_groupBy"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What are the ids of the students who registered for some courses but had the least number of courses for all students?",
+    "original_query": "SELECT student_id FROM Student_Course_Registrations GROUP BY student_id ORDER BY COUNT(*) ASC LIMIT 1",
+    "corrupted_query": "SELECT course_id FROM Student_Course_Registrations GROUP BY student_id ORDER BY COUNT(*) ASC LIMIT 1",
+    "corrupted_clause": "select",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What are the ids of the students who registered for some courses but had the least number of courses for all students?",
+    "original_query": "SELECT student_id FROM Student_Course_Registrations GROUP BY student_id ORDER BY COUNT(*) ASC LIMIT 1",
+    "corrupted_query": "SELECT student_id FROM Student_Course_Registrations GROUP BY student_id ORDER BY COUNT(*) DESC LIMIT 1",
+    "corrupted_clause": "orderBy",
+    "corrupted_position": 3,
+    "corruption_strategy": "corrupt_orderBy"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "what are the first name and last name of all candidates?",
+    "original_query": "SELECT People.first_name, People.last_name FROM Candidates, People WHERE Candidates.candidate_id = People.person_id",
+    "corrupted_query": "SELECT first_name, last_name FROM Candidates",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "what are the first name and last name of all candidates?",
+    "original_query": "SELECT People.first_name, People.last_name FROM Candidates, People WHERE Candidates.candidate_id = People.person_id",
+    "corrupted_query": "SELECT People.last_name FROM Candidates, People WHERE Candidates.candidate_id = People.person_id",
+    "corrupted_clause": "select",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What are the first and last names of all the candidates?",
+    "original_query": "SELECT People.first_name, People.last_name FROM Candidates, People WHERE Candidates.candidate_id = People.person_id",
+    "corrupted_query": "SELECT first_name, last_name FROM Candidates",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What are the first and last names of all the candidates?",
+    "original_query": "SELECT People.first_name, People.last_name FROM Candidates, People WHERE Candidates.candidate_id = People.person_id",
+    "corrupted_query": "SELECT People.last_name FROM Candidates, People WHERE Candidates.candidate_id = People.person_id",
+    "corrupted_clause": "select",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "List the id of students who never attends courses?",
+    "original_query": "SELECT student_id FROM Students WHERE student_id NOT IN ((SELECT student_id FROM Student_Course_Attendance))",
+    "corrupted_query": "SELECT student_id FROM Addresses WHERE student_id NOT IN ((SELECT student_id FROM Student_Course_Attendance))",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "List the id of students who never attends courses?",
+    "original_query": "SELECT student_id FROM Students WHERE student_id NOT IN ((SELECT student_id FROM Student_Course_Attendance))",
+    "corrupted_query": "SELECT student_id FROM Students WHERE student_id IN ((SELECT student_id FROM Student_Course_Attendance))",
+    "corrupted_clause": "where",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_where"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What are the  ids of every student who has never attended a course?",
+    "original_query": "SELECT student_id FROM Students WHERE student_id NOT IN ((SELECT student_id FROM Student_Course_Attendance))",
+    "corrupted_query": "SELECT student_id FROM Addresses WHERE student_id NOT IN ((SELECT student_id FROM Student_Course_Attendance))",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What are the  ids of every student who has never attended a course?",
+    "original_query": "SELECT student_id FROM Students WHERE student_id NOT IN ((SELECT student_id FROM Student_Course_Attendance))",
+    "corrupted_query": "SELECT student_id FROM Students WHERE student_id IN ((SELECT student_id FROM Student_Course_Attendance))",
+    "corrupted_clause": "where",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_where"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "List the id of students who attended some courses?",
+    "original_query": "SELECT student_id FROM Student_Course_Attendance",
+    "corrupted_query": "SELECT student_id FROM Addresses",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "List the id of students who attended some courses?",
+    "original_query": "SELECT student_id FROM Student_Course_Attendance",
+    "corrupted_query": "SELECT course_id FROM Student_Course_Attendance",
+    "corrupted_clause": "select",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What are the ids of all students who have attended at least one course?",
+    "original_query": "SELECT student_id FROM Student_Course_Attendance",
+    "corrupted_query": "SELECT student_id FROM Addresses",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What are the ids of all students who have attended at least one course?",
+    "original_query": "SELECT student_id FROM Student_Course_Attendance",
+    "corrupted_query": "SELECT course_id FROM Student_Course_Attendance",
+    "corrupted_clause": "select",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What are the ids of all students for courses and what are the names of those courses?",
+    "original_query": "SELECT Student_Course_Registrations.student_id, Courses.course_name FROM Student_Course_Registrations, Courses WHERE Student_Course_Registrations.course_id = Courses.course_id",
+    "corrupted_query": "SELECT student_id, course_name FROM Student_Course_Registrations",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What are the ids of all students for courses and what are the names of those courses?",
+    "original_query": "SELECT Student_Course_Registrations.student_id, Courses.course_name FROM Student_Course_Registrations, Courses WHERE Student_Course_Registrations.course_id = Courses.course_id",
+    "corrupted_query": "SELECT Courses.course_name FROM Student_Course_Registrations, Courses WHERE Student_Course_Registrations.course_id = Courses.course_id",
+    "corrupted_clause": "select",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What is detail of the student who most recently registered course?",
+    "original_query": "SELECT Students.student_details FROM Student_Course_Registrations, Students WHERE Student_Course_Registrations.student_id = Students.student_id ORDER BY Student_Course_Registrations.registration_date DESC LIMIT 1",
+    "corrupted_query": "SELECT student_details FROM Student_Course_Registrations ORDER BY registration_date DESC LIMIT 1",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What details do we have on the students who registered for courses most recently?",
+    "original_query": "SELECT Students.student_details FROM Student_Course_Registrations, Students WHERE Student_Course_Registrations.student_id = Students.student_id ORDER BY Student_Course_Registrations.registration_date DESC LIMIT 1",
+    "corrupted_query": "SELECT student_details FROM Student_Course_Registrations ORDER BY registration_date DESC LIMIT 1",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "How many students attend course English?",
+    "original_query": "SELECT COUNT(*) FROM Courses, Student_Course_Attendance WHERE Courses.course_id = Student_Course_Attendance.course_id AND Courses.course_name = 'English'",
+    "corrupted_query": "SELECT COUNT(*) FROM Courses WHERE course_name = 'English'",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "How many students attend course English?",
+    "original_query": "SELECT COUNT(*) FROM Courses, Student_Course_Attendance WHERE Courses.course_id = Student_Course_Attendance.course_id AND Courses.course_name = 'English'",
+    "corrupted_query": "SELECT COUNT(*) FROM Courses, Student_Course_Attendance WHERE Courses.course_id = Student_Course_Attendance.course_id AND Courses.course_name NOT = 'English'",
+    "corrupted_clause": "where",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_where"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "How many students attend course English?",
+    "original_query": "SELECT COUNT(*) FROM Courses, Student_Course_Attendance WHERE Courses.course_id = Student_Course_Attendance.course_id AND Courses.course_name = 'English'",
+    "corrupted_query": "SELECT MAX(*) FROM Courses, Student_Course_Attendance WHERE Courses.course_id = Student_Course_Attendance.course_id AND Courses.course_name = 'English'",
+    "corrupted_clause": "select",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "How many students are attending English courses?",
+    "original_query": "SELECT COUNT(*) FROM Courses, Student_Course_Attendance WHERE Courses.course_id = Student_Course_Attendance.course_id AND Courses.course_name = 'English'",
+    "corrupted_query": "SELECT COUNT(*) FROM Courses WHERE course_name = 'English'",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "How many students are attending English courses?",
+    "original_query": "SELECT COUNT(*) FROM Courses, Student_Course_Attendance WHERE Courses.course_id = Student_Course_Attendance.course_id AND Courses.course_name = 'English'",
+    "corrupted_query": "SELECT COUNT(*) FROM Courses, Student_Course_Attendance WHERE Courses.course_id = Student_Course_Attendance.course_id AND Courses.course_name NOT = 'English'",
+    "corrupted_clause": "where",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_where"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "How many students are attending English courses?",
+    "original_query": "SELECT COUNT(*) FROM Courses, Student_Course_Attendance WHERE Courses.course_id = Student_Course_Attendance.course_id AND Courses.course_name = 'English'",
+    "corrupted_query": "SELECT MAX(*) FROM Courses, Student_Course_Attendance WHERE Courses.course_id = Student_Course_Attendance.course_id AND Courses.course_name = 'English'",
+    "corrupted_clause": "select",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "How many courses do the student whose id is 171 attend?",
+    "original_query": "SELECT COUNT(*) FROM Courses, Student_Course_Attendance WHERE Courses.course_id = Student_Course_Attendance.course_id AND Student_Course_Attendance.student_id = 171.0",
+    "corrupted_query": "SELECT COUNT(*) FROM Courses WHERE student_id = 171.0",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "How many courses do the student whose id is 171 attend?",
+    "original_query": "SELECT COUNT(*) FROM Courses, Student_Course_Attendance WHERE Courses.course_id = Student_Course_Attendance.course_id AND Student_Course_Attendance.student_id = 171.0",
+    "corrupted_query": "SELECT COUNT(*) FROM Courses, Student_Course_Attendance WHERE Courses.course_id = Student_Course_Attendance.course_id AND Student_Course_Attendance.student_id NOT = 171.0",
+    "corrupted_clause": "where",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_where"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "How many courses do the student whose id is 171 attend?",
+    "original_query": "SELECT COUNT(*) FROM Courses, Student_Course_Attendance WHERE Courses.course_id = Student_Course_Attendance.course_id AND Student_Course_Attendance.student_id = 171.0",
+    "corrupted_query": "SELECT MAX(*) FROM Courses, Student_Course_Attendance WHERE Courses.course_id = Student_Course_Attendance.course_id AND Student_Course_Attendance.student_id = 171.0",
+    "corrupted_clause": "select",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "How many courses does the student with id 171 actually attend?",
+    "original_query": "SELECT COUNT(*) FROM Courses, Student_Course_Attendance WHERE Courses.course_id = Student_Course_Attendance.course_id AND Student_Course_Attendance.student_id = 171.0",
+    "corrupted_query": "SELECT COUNT(*) FROM Courses WHERE student_id = 171.0",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "How many courses does the student with id 171 actually attend?",
+    "original_query": "SELECT COUNT(*) FROM Courses, Student_Course_Attendance WHERE Courses.course_id = Student_Course_Attendance.course_id AND Student_Course_Attendance.student_id = 171.0",
+    "corrupted_query": "SELECT COUNT(*) FROM Courses, Student_Course_Attendance WHERE Courses.course_id = Student_Course_Attendance.course_id AND Student_Course_Attendance.student_id NOT = 171.0",
+    "corrupted_clause": "where",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_where"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "How many courses does the student with id 171 actually attend?",
+    "original_query": "SELECT COUNT(*) FROM Courses, Student_Course_Attendance WHERE Courses.course_id = Student_Course_Attendance.course_id AND Student_Course_Attendance.student_id = 171.0",
+    "corrupted_query": "SELECT MAX(*) FROM Courses, Student_Course_Attendance WHERE Courses.course_id = Student_Course_Attendance.course_id AND Student_Course_Attendance.student_id = 171.0",
+    "corrupted_clause": "select",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "Find id of the candidate whose email is stanley.monahan@example.org?",
+    "original_query": "SELECT Candidates.candidate_id FROM People, Candidates WHERE People.person_id = Candidates.candidate_id AND People.email_address = 'stanley.monahan@example.org'",
+    "corrupted_query": "SELECT candidate_id FROM People WHERE email_address = 'stanley.monahan@example.org'",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "Find id of the candidate whose email is stanley.monahan@example.org?",
+    "original_query": "SELECT Candidates.candidate_id FROM People, Candidates WHERE People.person_id = Candidates.candidate_id AND People.email_address = 'stanley.monahan@example.org'",
+    "corrupted_query": "SELECT Candidates.candidate_id FROM People, Candidates WHERE People.person_id = Candidates.candidate_id AND People.email_address NOT = 'stanley.monahan@example.org'",
+    "corrupted_clause": "where",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_where"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What is the id of the candidate whose email is stanley.monahan@example.org?",
+    "original_query": "SELECT Candidates.candidate_id FROM People, Candidates WHERE People.person_id = Candidates.candidate_id AND People.email_address = 'stanley.monahan@example.org'",
+    "corrupted_query": "SELECT candidate_id FROM People WHERE email_address = 'stanley.monahan@example.org'",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What is the id of the candidate whose email is stanley.monahan@example.org?",
+    "original_query": "SELECT Candidates.candidate_id FROM People, Candidates WHERE People.person_id = Candidates.candidate_id AND People.email_address = 'stanley.monahan@example.org'",
+    "corrupted_query": "SELECT Candidates.candidate_id FROM People, Candidates WHERE People.person_id = Candidates.candidate_id AND People.email_address NOT = 'stanley.monahan@example.org'",
+    "corrupted_clause": "where",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_where"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "Find id of the candidate who most recently accessed the course?",
+    "original_query": "SELECT candidate_id FROM Candidate_Assessments ORDER BY assessment_date DESC LIMIT 1",
+    "corrupted_query": "SELECT candidate_id FROM Addresses ORDER BY assessment_date DESC LIMIT 1",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "Find id of the candidate who most recently accessed the course?",
+    "original_query": "SELECT candidate_id FROM Candidate_Assessments ORDER BY assessment_date DESC LIMIT 1",
+    "corrupted_query": "SELECT candidate_id FROM Candidate_Assessments ORDER BY assessment_date ASC LIMIT 1",
+    "corrupted_clause": "orderBy",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_orderBy"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What is the id of the candidate who most recently accessed the course?",
+    "original_query": "SELECT candidate_id FROM Candidate_Assessments ORDER BY assessment_date DESC LIMIT 1",
+    "corrupted_query": "SELECT candidate_id FROM Addresses ORDER BY assessment_date DESC LIMIT 1",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What is the id of the candidate who most recently accessed the course?",
+    "original_query": "SELECT candidate_id FROM Candidate_Assessments ORDER BY assessment_date DESC LIMIT 1",
+    "corrupted_query": "SELECT candidate_id FROM Candidate_Assessments ORDER BY assessment_date ASC LIMIT 1",
+    "corrupted_clause": "orderBy",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_orderBy"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What is detail of the student who registered the most number of courses?",
+    "original_query": "SELECT Students.student_details FROM Students, Student_Course_Registrations WHERE Students.student_id = Student_Course_Registrations.student_id GROUP BY Students.student_id ORDER BY COUNT(*) DESC LIMIT 1",
+    "corrupted_query": "SELECT student_details FROM Students GROUP BY student_id ORDER BY COUNT(*) DESC LIMIT 1",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What is detail of the student who registered the most number of courses?",
+    "original_query": "SELECT Students.student_details FROM Students, Student_Course_Registrations WHERE Students.student_id = Student_Course_Registrations.student_id GROUP BY Students.student_id ORDER BY COUNT(*) DESC LIMIT 1",
+    "corrupted_query": "SELECT Students.student_details FROM Students, Student_Course_Registrations WHERE Students.student_id = Student_Course_Registrations.student_id GROUP BY Students.student_details ORDER BY COUNT(*) DESC LIMIT 1",
+    "corrupted_clause": "groupBy",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_groupBy"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What is detail of the student who registered the most number of courses?",
+    "original_query": "SELECT Students.student_details FROM Students, Student_Course_Registrations WHERE Students.student_id = Student_Course_Registrations.student_id GROUP BY Students.student_id ORDER BY COUNT(*) DESC LIMIT 1",
+    "corrupted_query": "SELECT Students.student_details FROM Students, Student_Course_Registrations WHERE Students.student_id = Student_Course_Registrations.student_id GROUP BY Students.student_id ORDER BY COUNT(*) ASC LIMIT 1",
+    "corrupted_clause": "orderBy",
+    "corrupted_position": 3,
+    "corruption_strategy": "corrupt_orderBy"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What are the details of the student who registered for the most number of courses?",
+    "original_query": "SELECT Students.student_details FROM Students, Student_Course_Registrations WHERE Students.student_id = Student_Course_Registrations.student_id GROUP BY Students.student_id ORDER BY COUNT(*) DESC LIMIT 1",
+    "corrupted_query": "SELECT student_details FROM Students GROUP BY student_id ORDER BY COUNT(*) DESC LIMIT 1",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What are the details of the student who registered for the most number of courses?",
+    "original_query": "SELECT Students.student_details FROM Students, Student_Course_Registrations WHERE Students.student_id = Student_Course_Registrations.student_id GROUP BY Students.student_id ORDER BY COUNT(*) DESC LIMIT 1",
+    "corrupted_query": "SELECT Students.student_details FROM Students, Student_Course_Registrations WHERE Students.student_id = Student_Course_Registrations.student_id GROUP BY Students.student_details ORDER BY COUNT(*) DESC LIMIT 1",
+    "corrupted_clause": "groupBy",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_groupBy"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What are the details of the student who registered for the most number of courses?",
+    "original_query": "SELECT Students.student_details FROM Students, Student_Course_Registrations WHERE Students.student_id = Student_Course_Registrations.student_id GROUP BY Students.student_id ORDER BY COUNT(*) DESC LIMIT 1",
+    "corrupted_query": "SELECT Students.student_details FROM Students, Student_Course_Registrations WHERE Students.student_id = Student_Course_Registrations.student_id GROUP BY Students.student_id ORDER BY COUNT(*) ASC LIMIT 1",
+    "corrupted_clause": "orderBy",
+    "corrupted_position": 3,
+    "corruption_strategy": "corrupt_orderBy"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "List the id of students who registered some courses and the number of their registered courses?",
+    "original_query": "SELECT Students.student_id, COUNT(*) FROM Students, Student_Course_Registrations WHERE Students.student_id = Student_Course_Registrations.student_id GROUP BY Students.student_id",
+    "corrupted_query": "SELECT student_id, COUNT(*) FROM Students GROUP BY student_id",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "List the id of students who registered some courses and the number of their registered courses?",
+    "original_query": "SELECT Students.student_id, COUNT(*) FROM Students, Student_Course_Registrations WHERE Students.student_id = Student_Course_Registrations.student_id GROUP BY Students.student_id",
+    "corrupted_query": "SELECT Students.student_id, MAX(*) FROM Students, Student_Course_Registrations WHERE Students.student_id = Student_Course_Registrations.student_id GROUP BY Students.student_id",
+    "corrupted_clause": "select",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "For every student who is registered for some course, how many courses are they registered for?",
+    "original_query": "SELECT Students.student_id, COUNT(*) FROM Students, Student_Course_Registrations WHERE Students.student_id = Student_Course_Registrations.student_id GROUP BY Students.student_id",
+    "corrupted_query": "SELECT student_id, COUNT(*) FROM Students GROUP BY student_id",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "For every student who is registered for some course, how many courses are they registered for?",
+    "original_query": "SELECT Students.student_id, COUNT(*) FROM Students, Student_Course_Registrations WHERE Students.student_id = Student_Course_Registrations.student_id GROUP BY Students.student_id",
+    "corrupted_query": "SELECT Students.student_id, MAX(*) FROM Students, Student_Course_Registrations WHERE Students.student_id = Student_Course_Registrations.student_id GROUP BY Students.student_id",
+    "corrupted_clause": "select",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "How many registed students do each course have? List course name and the number of their registered students?",
+    "original_query": "SELECT Courses.course_name, COUNT(*) FROM Students, Student_Course_Registrations, Courses WHERE Students.student_id = Student_Course_Registrations.student_id AND Student_Course_Registrations.course_id = Courses.course_id GROUP BY Student_Course_Registrations.course_id",
+    "corrupted_query": "SELECT course_name, COUNT(*) FROM Students, Student_Course_Registrations WHERE Students.student_id = Student_Course_Registrations.student_id GROUP BY Student_Course_Registrations.course_id",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "How many registed students do each course have? List course name and the number of their registered students?",
+    "original_query": "SELECT Courses.course_name, COUNT(*) FROM Students, Student_Course_Registrations, Courses WHERE Students.student_id = Student_Course_Registrations.student_id AND Student_Course_Registrations.course_id = Courses.course_id GROUP BY Student_Course_Registrations.course_id",
+    "corrupted_query": "SELECT Courses.course_name, COUNT(*) FROM Students, Student_Course_Registrations, Courses WHERE Students.student_id = Student_Course_Registrations.student_id AND Student_Course_Registrations.course_id = Courses.course_id GROUP BY Student_Course_Registrations.student_id",
+    "corrupted_clause": "groupBy",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_groupBy"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "How many registed students do each course have? List course name and the number of their registered students?",
+    "original_query": "SELECT Courses.course_name, COUNT(*) FROM Students, Student_Course_Registrations, Courses WHERE Students.student_id = Student_Course_Registrations.student_id AND Student_Course_Registrations.course_id = Courses.course_id GROUP BY Student_Course_Registrations.course_id",
+    "corrupted_query": "SELECT Courses.course_name, MAX(*) FROM Students, Student_Course_Registrations, Courses WHERE Students.student_id = Student_Course_Registrations.student_id AND Student_Course_Registrations.course_id = Courses.course_id GROUP BY Student_Course_Registrations.course_id",
+    "corrupted_clause": "select",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "For each course id, how many students are registered and what are the course names?",
+    "original_query": "SELECT Courses.course_name, COUNT(*) FROM Students, Student_Course_Registrations, Courses WHERE Students.student_id = Student_Course_Registrations.student_id AND Student_Course_Registrations.course_id = Courses.course_id GROUP BY Student_Course_Registrations.course_id",
+    "corrupted_query": "SELECT course_name, COUNT(*) FROM Students, Student_Course_Registrations WHERE Students.student_id = Student_Course_Registrations.student_id GROUP BY Student_Course_Registrations.course_id",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "For each course id, how many students are registered and what are the course names?",
+    "original_query": "SELECT Courses.course_name, COUNT(*) FROM Students, Student_Course_Registrations, Courses WHERE Students.student_id = Student_Course_Registrations.student_id AND Student_Course_Registrations.course_id = Courses.course_id GROUP BY Student_Course_Registrations.course_id",
+    "corrupted_query": "SELECT Courses.course_name, COUNT(*) FROM Students, Student_Course_Registrations, Courses WHERE Students.student_id = Student_Course_Registrations.student_id AND Student_Course_Registrations.course_id = Courses.course_id GROUP BY Student_Course_Registrations.student_id",
+    "corrupted_clause": "groupBy",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_groupBy"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "For each course id, how many students are registered and what are the course names?",
+    "original_query": "SELECT Courses.course_name, COUNT(*) FROM Students, Student_Course_Registrations, Courses WHERE Students.student_id = Student_Course_Registrations.student_id AND Student_Course_Registrations.course_id = Courses.course_id GROUP BY Student_Course_Registrations.course_id",
+    "corrupted_query": "SELECT Courses.course_name, MAX(*) FROM Students, Student_Course_Registrations, Courses WHERE Students.student_id = Student_Course_Registrations.student_id AND Student_Course_Registrations.course_id = Courses.course_id GROUP BY Student_Course_Registrations.course_id",
+    "corrupted_clause": "select",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "Find id of candidates whose assessment code is \"Pass\"?",
+    "original_query": "SELECT candidate_id FROM Candidate_Assessments WHERE asessment_outcome_code = 'Pass'",
+    "corrupted_query": "SELECT candidate_id FROM Addresses WHERE asessment_outcome_code = 'Pass'",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "Find id of candidates whose assessment code is \"Pass\"?",
+    "original_query": "SELECT candidate_id FROM Candidate_Assessments WHERE asessment_outcome_code = 'Pass'",
+    "corrupted_query": "SELECT candidate_id FROM Candidate_Assessments WHERE asessment_outcome_code NOT = 'Pass'",
+    "corrupted_clause": "where",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_where"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What are the ids of the candidates that have an outcome code of Pass?",
+    "original_query": "SELECT candidate_id FROM Candidate_Assessments WHERE asessment_outcome_code = 'Pass'",
+    "corrupted_query": "SELECT candidate_id FROM Addresses WHERE asessment_outcome_code = 'Pass'",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What are the ids of the candidates that have an outcome code of Pass?",
+    "original_query": "SELECT candidate_id FROM Candidate_Assessments WHERE asessment_outcome_code = 'Pass'",
+    "corrupted_query": "SELECT candidate_id FROM Candidate_Assessments WHERE asessment_outcome_code NOT = 'Pass'",
+    "corrupted_clause": "where",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_where"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "Find the cell mobile number of the candidates whose assessment code is \"Fail\"?",
+    "original_query": "SELECT People.cell_mobile_number FROM Candidates, Candidate_Assessments, People WHERE Candidates.candidate_id = Candidate_Assessments.candidate_id AND Candidates.candidate_id = People.person_id AND Candidate_Assessments.asessment_outcome_code = 'Fail'",
+    "corrupted_query": "SELECT cell_mobile_number FROM Candidates, Candidate_Assessments WHERE Candidates.candidate_id = Candidate_Assessments.candidate_id AND Candidate_Assessments.asessment_outcome_code = 'Fail'",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "Find the cell mobile number of the candidates whose assessment code is \"Fail\"?",
+    "original_query": "SELECT People.cell_mobile_number FROM Candidates, Candidate_Assessments, People WHERE Candidates.candidate_id = Candidate_Assessments.candidate_id AND Candidates.candidate_id = People.person_id AND Candidate_Assessments.asessment_outcome_code = 'Fail'",
+    "corrupted_query": "SELECT People.cell_mobile_number FROM Candidates, Candidate_Assessments, People WHERE Candidates.candidate_id = Candidate_Assessments.candidate_id AND Candidates.candidate_id = People.person_id AND Candidate_Assessments.asessment_outcome_code NOT = 'Fail'",
+    "corrupted_clause": "where",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_where"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "Find the cell mobile number of the candidates whose assessment code is \"Fail\"?",
+    "original_query": "SELECT People.cell_mobile_number FROM Candidates, Candidate_Assessments, People WHERE Candidates.candidate_id = Candidate_Assessments.candidate_id AND Candidates.candidate_id = People.person_id AND Candidate_Assessments.asessment_outcome_code = 'Fail'",
+    "corrupted_query": "SELECT People.first_name FROM Candidates, Candidate_Assessments, People WHERE Candidates.candidate_id = Candidate_Assessments.candidate_id AND Candidates.candidate_id = People.person_id AND Candidate_Assessments.asessment_outcome_code = 'Fail'",
+    "corrupted_clause": "select",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What are the cell phone numbers of the candidates that received an assessment code of \"Fail\"?",
+    "original_query": "SELECT People.cell_mobile_number FROM Candidates, Candidate_Assessments, People WHERE Candidates.candidate_id = Candidate_Assessments.candidate_id AND Candidates.candidate_id = People.person_id AND Candidate_Assessments.asessment_outcome_code = 'Fail'",
+    "corrupted_query": "SELECT cell_mobile_number FROM Candidates, Candidate_Assessments WHERE Candidates.candidate_id = Candidate_Assessments.candidate_id AND Candidate_Assessments.asessment_outcome_code = 'Fail'",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What are the cell phone numbers of the candidates that received an assessment code of \"Fail\"?",
+    "original_query": "SELECT People.cell_mobile_number FROM Candidates, Candidate_Assessments, People WHERE Candidates.candidate_id = Candidate_Assessments.candidate_id AND Candidates.candidate_id = People.person_id AND Candidate_Assessments.asessment_outcome_code = 'Fail'",
+    "corrupted_query": "SELECT People.cell_mobile_number FROM Candidates, Candidate_Assessments, People WHERE Candidates.candidate_id = Candidate_Assessments.candidate_id AND Candidates.candidate_id = People.person_id AND Candidate_Assessments.asessment_outcome_code NOT = 'Fail'",
+    "corrupted_clause": "where",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_where"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What are the cell phone numbers of the candidates that received an assessment code of \"Fail\"?",
+    "original_query": "SELECT People.cell_mobile_number FROM Candidates, Candidate_Assessments, People WHERE Candidates.candidate_id = Candidate_Assessments.candidate_id AND Candidates.candidate_id = People.person_id AND Candidate_Assessments.asessment_outcome_code = 'Fail'",
+    "corrupted_query": "SELECT People.first_name FROM Candidates, Candidate_Assessments, People WHERE Candidates.candidate_id = Candidate_Assessments.candidate_id AND Candidates.candidate_id = People.person_id AND Candidate_Assessments.asessment_outcome_code = 'Fail'",
+    "corrupted_clause": "select",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What are the id of students who registered course 301?",
+    "original_query": "SELECT student_id FROM Student_Course_Attendance WHERE course_id = 301.0",
+    "corrupted_query": "SELECT student_id FROM Addresses WHERE course_id = 301.0",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What are the id of students who registered course 301?",
+    "original_query": "SELECT student_id FROM Student_Course_Attendance WHERE course_id = 301.0",
+    "corrupted_query": "SELECT student_id FROM Student_Course_Attendance WHERE course_id NOT = 301.0",
+    "corrupted_clause": "where",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_where"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What are the id of students who registered course 301?",
+    "original_query": "SELECT student_id FROM Student_Course_Attendance WHERE course_id = 301.0",
+    "corrupted_query": "SELECT course_id FROM Student_Course_Attendance WHERE course_id = 301.0",
+    "corrupted_clause": "select",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What are the ids of the students who registered for course 301?",
+    "original_query": "SELECT student_id FROM Student_Course_Attendance WHERE course_id = 301.0",
+    "corrupted_query": "SELECT student_id FROM Addresses WHERE course_id = 301.0",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What are the ids of the students who registered for course 301?",
+    "original_query": "SELECT student_id FROM Student_Course_Attendance WHERE course_id = 301.0",
+    "corrupted_query": "SELECT student_id FROM Student_Course_Attendance WHERE course_id NOT = 301.0",
+    "corrupted_clause": "where",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_where"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What are the ids of the students who registered for course 301?",
+    "original_query": "SELECT student_id FROM Student_Course_Attendance WHERE course_id = 301.0",
+    "corrupted_query": "SELECT course_id FROM Student_Course_Attendance WHERE course_id = 301.0",
+    "corrupted_clause": "select",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What is the id of the student who most recently registered course 301?",
+    "original_query": "SELECT student_id FROM Student_Course_Attendance WHERE course_id = 301.0 ORDER BY date_of_attendance DESC LIMIT 1",
+    "corrupted_query": "SELECT student_id FROM Addresses WHERE course_id = 301.0 ORDER BY date_of_attendance DESC LIMIT 1",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What is the id of the student who most recently registered course 301?",
+    "original_query": "SELECT student_id FROM Student_Course_Attendance WHERE course_id = 301.0 ORDER BY date_of_attendance DESC LIMIT 1",
+    "corrupted_query": "SELECT student_id FROM Student_Course_Attendance WHERE course_id NOT = 301.0 ORDER BY date_of_attendance DESC LIMIT 1",
+    "corrupted_clause": "where",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_where"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What is the id of the student who most recently registered course 301?",
+    "original_query": "SELECT student_id FROM Student_Course_Attendance WHERE course_id = 301.0 ORDER BY date_of_attendance DESC LIMIT 1",
+    "corrupted_query": "SELECT course_id FROM Student_Course_Attendance WHERE course_id = 301.0 ORDER BY date_of_attendance DESC LIMIT 1",
+    "corrupted_clause": "select",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What is the id of the student who most recently registered course 301?",
+    "original_query": "SELECT student_id FROM Student_Course_Attendance WHERE course_id = 301.0 ORDER BY date_of_attendance DESC LIMIT 1",
+    "corrupted_query": "SELECT student_id FROM Student_Course_Attendance WHERE course_id = 301.0 ORDER BY date_of_attendance ASC LIMIT 1",
+    "corrupted_clause": "orderBy",
+    "corrupted_position": 3,
+    "corruption_strategy": "corrupt_orderBy"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What are the ids of the students who registered for course 301 most recently?",
+    "original_query": "SELECT student_id FROM Student_Course_Attendance WHERE course_id = 301.0 ORDER BY date_of_attendance DESC LIMIT 1",
+    "corrupted_query": "SELECT student_id FROM Addresses WHERE course_id = 301.0 ORDER BY date_of_attendance DESC LIMIT 1",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What are the ids of the students who registered for course 301 most recently?",
+    "original_query": "SELECT student_id FROM Student_Course_Attendance WHERE course_id = 301.0 ORDER BY date_of_attendance DESC LIMIT 1",
+    "corrupted_query": "SELECT student_id FROM Student_Course_Attendance WHERE course_id NOT = 301.0 ORDER BY date_of_attendance DESC LIMIT 1",
+    "corrupted_clause": "where",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_where"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What are the ids of the students who registered for course 301 most recently?",
+    "original_query": "SELECT student_id FROM Student_Course_Attendance WHERE course_id = 301.0 ORDER BY date_of_attendance DESC LIMIT 1",
+    "corrupted_query": "SELECT course_id FROM Student_Course_Attendance WHERE course_id = 301.0 ORDER BY date_of_attendance DESC LIMIT 1",
+    "corrupted_clause": "select",
+    "corrupted_position": 2,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What are the ids of the students who registered for course 301 most recently?",
+    "original_query": "SELECT student_id FROM Student_Course_Attendance WHERE course_id = 301.0 ORDER BY date_of_attendance DESC LIMIT 1",
+    "corrupted_query": "SELECT student_id FROM Student_Course_Attendance WHERE course_id = 301.0 ORDER BY date_of_attendance ASC LIMIT 1",
+    "corrupted_clause": "orderBy",
+    "corrupted_position": 3,
+    "corruption_strategy": "corrupt_orderBy"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "Find distinct cities of addresses of people?",
+    "original_query": "SELECT DISTINCT Addresses.city FROM Addresses, People_Addresses WHERE Addresses.address_id = People_Addresses.address_id",
+    "corrupted_query": "SELECT DISTINCT city FROM Addresses",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "Find distinct cities of addresses of people?",
+    "original_query": "SELECT DISTINCT Addresses.city FROM Addresses, People_Addresses WHERE Addresses.address_id = People_Addresses.address_id",
+    "corrupted_query": "SELECT DISTINCT Addresses.line_1 FROM Addresses, People_Addresses WHERE Addresses.address_id = People_Addresses.address_id",
+    "corrupted_clause": "select",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What are the different cities where people live?",
+    "original_query": "SELECT DISTINCT Addresses.city FROM Addresses, People_Addresses WHERE Addresses.address_id = People_Addresses.address_id",
+    "corrupted_query": "SELECT DISTINCT city FROM Addresses",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What are the different cities where people live?",
+    "original_query": "SELECT DISTINCT Addresses.city FROM Addresses, People_Addresses WHERE Addresses.address_id = People_Addresses.address_id",
+    "corrupted_query": "SELECT DISTINCT Addresses.line_1 FROM Addresses, People_Addresses WHERE Addresses.address_id = People_Addresses.address_id",
+    "corrupted_clause": "select",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "Find distinct cities of address of students?",
+    "original_query": "SELECT DISTINCT Addresses.city FROM Addresses, People_Addresses, Students WHERE Addresses.address_id = People_Addresses.address_id AND People_Addresses.person_id = Students.student_id",
+    "corrupted_query": "SELECT DISTINCT Addresses.line_1 FROM Addresses, People_Addresses, Students WHERE Addresses.address_id = People_Addresses.address_id AND People_Addresses.person_id = Students.student_id",
+    "corrupted_clause": "select",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What are the different cities where students live?",
+    "original_query": "SELECT DISTINCT Addresses.city FROM Addresses, People_Addresses, Students WHERE Addresses.address_id = People_Addresses.address_id AND People_Addresses.person_id = Students.student_id",
+    "corrupted_query": "SELECT DISTINCT Addresses.line_1 FROM Addresses, People_Addresses, Students WHERE Addresses.address_id = People_Addresses.address_id AND People_Addresses.person_id = Students.student_id",
+    "corrupted_clause": "select",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "List the names of courses in alphabetical order?",
+    "original_query": "SELECT course_name FROM Courses ORDER BY course_name ASC",
+    "corrupted_query": "SELECT course_name FROM Addresses ORDER BY course_name ASC",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "List the names of courses in alphabetical order?",
+    "original_query": "SELECT course_name FROM Courses ORDER BY course_name ASC",
+    "corrupted_query": "SELECT course_id FROM Courses ORDER BY course_name ASC",
+    "corrupted_clause": "select",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What are the names of the courses in alphabetical order?",
+    "original_query": "SELECT course_name FROM Courses ORDER BY course_name ASC",
+    "corrupted_query": "SELECT course_name FROM Addresses ORDER BY course_name ASC",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What are the names of the courses in alphabetical order?",
+    "original_query": "SELECT course_name FROM Courses ORDER BY course_name ASC",
+    "corrupted_query": "SELECT course_id FROM Courses ORDER BY course_name ASC",
+    "corrupted_clause": "select",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "List the first names of people in alphabetical order?",
+    "original_query": "SELECT first_name FROM People ORDER BY first_name ASC",
+    "corrupted_query": "SELECT first_name FROM Addresses ORDER BY first_name ASC",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "List the first names of people in alphabetical order?",
+    "original_query": "SELECT first_name FROM People ORDER BY first_name ASC",
+    "corrupted_query": "SELECT middle_name FROM People ORDER BY first_name ASC",
+    "corrupted_clause": "select",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What are the first names of the people in alphabetical order?",
+    "original_query": "SELECT first_name FROM People ORDER BY first_name ASC",
+    "corrupted_query": "SELECT first_name FROM Addresses ORDER BY first_name ASC",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What are the first names of the people in alphabetical order?",
+    "original_query": "SELECT first_name FROM People ORDER BY first_name ASC",
+    "corrupted_query": "SELECT middle_name FROM People ORDER BY first_name ASC",
+    "corrupted_clause": "select",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_select"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What are the id of students who registered courses or attended courses?",
+    "original_query": "SELECT student_id FROM Student_Course_Registrations UNION SELECT student_id FROM Student_Course_Attendance",
+    "corrupted_query": "SELECT student_id FROM Addresses UNION SELECT student_id FROM Student_Course_Attendance",
+    "corrupted_clause": "from",
+    "corrupted_position": 0,
+    "corruption_strategy": "corrupt_from"
+  },
+  {
+    "db_id": "student_assessment",
+    "question": "What are the id of students who registered courses or attended courses?",
+    "original_query": "SELECT student_id FROM Student_Course_Registrations UNION SELECT student_id FROM Student_Course_Attendance",
+    "corrupted_query": "SELECT course_id FROM Student_Course_Registrations UNION SELECT student_id FROM Student_Course_Attendance",
+    "corrupted_clause": "select",
+    "corrupted_position": 1,
+    "corruption_strategy": "corrupt_select"
+  }
+]

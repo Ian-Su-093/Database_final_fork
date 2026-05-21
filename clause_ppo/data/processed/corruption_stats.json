@@ -1,0 +1,39 @@
+{
+  "total_processed": 100,
+  "skipped_few_clauses": 0,
+  "skipped_no_corruption": 0,
+  "total_corruptions": 261,
+  "examples_with_corruption": 100,
+  "per_clause_stats": {
+    "where": {
+      "attempts": 39,
+      "verified": 39,
+      "pass_rate": 1.0
+    },
+    "from": {
+      "attempts": 100,
+      "verified": 96,
+      "pass_rate": 0.96
+    },
+    "select": {
+      "attempts": 100,
+      "verified": 88,
+      "pass_rate": 0.88
+    },
+    "orderBy": {
+      "attempts": 32,
+      "verified": 17,
+      "pass_rate": 0.5312
+    },
+    "having": {
+      "attempts": 4,
+      "verified": 4,
+      "pass_rate": 1.0
+    },
+    "groupBy": {
+      "attempts": 23,
+      "verified": 17,
+      "pass_rate": 0.7391
+    }
+  }
+}
