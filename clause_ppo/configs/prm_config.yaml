@@ -1,0 +1,30 @@
+# PRM training configuration for CLAUSE-PPO Phase 1
+# Target hardware: NVIDIA RTX 4090 (24 GB VRAM)
+
+model:
+  name: codellama/CodeLlama-7b-hf
+  lora_rank: 16
+  lora_alpha: 32
+  lora_dropout: 0.05
+  target_modules: [q_proj, v_proj]
+  quantization: 4bit           # '4bit' | 'none'
+
+training:
+  max_length: 512
+  batch_size: 2                # per-device; effective = batch_size * grad_accum
+  grad_accumulation_steps: 16  # effective batch size = 32
+  learning_rate: 2.0e-5
+  num_epochs: 3
+  warmup_steps: 100
+  weight_decay: 0.01
+  max_grad_norm: 1.0
+  schema_dropout_prob: 0.3
+  schema_grounding_lambda: 0.1  # weight for schema-grounding auxiliary loss
+
+evaluation:
+  eval_every: 500              # steps between dev evaluations
+  log_every: 50                # steps between train loss logs
+
+paths:
+  output_dir: results/prm_checkpoints
+  log_file: results/prm_training_log.jsonl
