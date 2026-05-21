@@ -151,6 +151,14 @@ def corrupt_from(sql_dict: dict, tables: dict) -> Optional[dict]:
                 else:
                     new_conds.append(item)
 
+        # Strip any leading/trailing connectors left by the pruning pass.
+        # This happens when the dropped condition was last (trailing 'and'/'or')
+        # or first (leading 'and'/'or') in the list.
+        while new_conds and isinstance(new_conds[-1], str):
+            new_conds.pop()
+        while new_conds and isinstance(new_conds[0], str):
+            new_conds.pop(0)
+
         sql['from']['table_units'] = new_units
         sql['from']['conds']       = new_conds
         return sql
@@ -186,6 +194,12 @@ def corrupt_where(sql_dict: dict, tables: dict) -> Optional[dict]:
         if not isinstance(item, str):
             sql['where'][i][0] = not item[0]
             return sql
+
+    # Strategies 2 and 3 below are dead code in the current implementation:
+    # Strategy 1 always returns when there is at least one condition, because
+    # Spider WHERE lists always contain at least one non-string item when conds
+    # is non-empty, and the for-loop above fires on the very first one.
+    # They are preserved here for spec completeness and future refactoring.
 
     # Strategy 2: replace column reference in first condition
     cond = sql['where'][0]
