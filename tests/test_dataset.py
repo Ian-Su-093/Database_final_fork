@@ -1,7 +1,8 @@
 """Tests for PRMDataset."""
 import os, sys, json
 import pytest
-import torch
+
+torch = pytest.importorskip("torch", reason="torch not installed")
 
 PROCESSED_DIR = os.path.join(os.path.dirname(__file__), '..', 'clause_ppo', 'data', 'processed')
 
