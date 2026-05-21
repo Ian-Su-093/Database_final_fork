@@ -1,13 +1,100 @@
 # CLAUSE-PPO Phase 1 — Process Reward Model
 
-## Prerequisites
+## Running on a Windows/Linux PC with RTX 4090
+
+This project was developed on a Mac. Training requires a CUDA GPU (RTX 4090 target).
+Follow these steps on your PC:
+
+### 1. Transfer the code
+
+Option A — Git (recommended):
+```bash
+git clone <your-repo-url>
+cd Database_final
+```
+
+Option B — Copy manually: transfer the entire `Database_final/` folder to the PC.
+
+### 2. Get the Spider dataset on the PC
+
+The `clause_ppo/data/spider` symlink only works on the Mac.
+On the PC, download Spider directly into the right place:
 
 ```bash
+pip install gdown
+cd Database_final/clause_ppo
+gdown "1403EGqzIDoHMdQF4c9Bkyl7dZLZ5Wt6J" -O spider.zip
+unzip spider.zip
+mv spider_data data/spider          # rename to match expected path
+rm spider.zip
+```
+
+Verify: `ls data/spider/` should show `train_spider.json`, `dev.json`, `tables.json`, `database/`.
+
+### 3. Set up the Python environment
+
+```bash
+cd Database_final/clause_ppo
+python -m venv .venv
+# Windows:
+.venv\Scripts\activate
+# Linux:
+source .venv/bin/activate
+
 pip install -r requirements.txt
 ```
 
-Requires an NVIDIA RTX 4090 (24 GB VRAM) or equivalent for model training.
-Dataset exploration and corruption building run on CPU.
+> **Windows note:** `bitsandbytes` requires CUDA to be installed first.
+> Install CUDA Toolkit 11.8 or 12.1 from https://developer.nvidia.com/cuda-downloads
+> before running `pip install -r requirements.txt`.
+
+### 4. Verify CUDA is visible
+
+```bash
+python -c "import torch; print(torch.cuda.is_available()); print(torch.cuda.get_device_name(0))"
+```
+
+Expected output: `True` and `NVIDIA GeForce RTX 4090`.
+
+### 5. Accept the CodeLlama model license
+
+The training script downloads `codellama/CodeLlama-7b-hf` from HuggingFace on first run.
+You must accept the license first:
+1. Go to https://huggingface.co/codellama/CodeLlama-7b-hf
+2. Click "Access repository" and accept the terms
+3. Log in from the terminal: `huggingface-cli login` (paste your HF token)
+
+---
+
+## Step 1 — Build the Corruption Dataset
+
+Run this from `clause_ppo/` on the PC (CPU is fine, ~10 min):
+
+```bash
+python scripts/build_corruption_dataset.py \
+    --spider_dir  data/spider \
+    --output_dir  data/processed \
+    --split       train \
+    --max_examples -1 \
+    --min_clauses  2 \
+    --log_every    200
+```
+
+**OR** copy the already-built files from your Mac to save time:
+
+```bash
+# On Mac, from Database_final/
+scp clause_ppo/data/processed/*.json user@pc-ip:~/Database_final/clause_ppo/data/processed/
+```
+
+Expected outputs in `data/processed/`:
+- `corruption_dataset.json` — verified corruption records
+- `original_dataset.json`   — filtered originals with pre-computed clause splits
+- `corruption_stats.json`   — per-clause pass rates and counts
+
+**Diagnostic:** Check `corruption_stats.json`. Healthy pass rates are 0.1–0.6 per
+clause. Near-zero means `reconstruct_sql` is broken; near-one means corruptions are
+trivially equivalent.
 
 ## Step 1 — Build the Corruption Dataset
 
