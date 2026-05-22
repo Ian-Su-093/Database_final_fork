@@ -49,6 +49,7 @@ class ClausePRM(nn.Module):
             target_modules = ['q_proj', 'v_proj']
 
         # ── Load backbone ─────────────────────────────────────────────────
+        print(f"  Loading backbone: {model_name} ({'4-bit NF4 QLoRA' if use_4bit else 'bfloat16'}) ...", flush=True)
         if use_4bit:
             bnb_config = BitsAndBytesConfig(
                 load_in_4bit=True,
@@ -60,19 +61,21 @@ class ClausePRM(nn.Module):
                 model_name,
                 quantization_config=bnb_config,
                 device_map='auto',
-                torch_dtype=torch.bfloat16,
+                dtype=torch.bfloat16,
             )
         else:
             self.backbone = AutoModelForCausalLM.from_pretrained(
                 model_name,
                 device_map='auto',
-                torch_dtype=torch.bfloat16,
+                dtype=torch.bfloat16,
             )
+        print("  Backbone loaded.", flush=True)
 
         # Enable gradient checkpointing to reduce VRAM usage
         self.backbone.gradient_checkpointing_enable()
 
         # ── Attach LoRA adapter ───────────────────────────────────────────
+        print(f"  Attaching LoRA (rank={lora_rank}, alpha={lora_alpha}, modules={target_modules}) ...", flush=True)
         lora_config = LoraConfig(
             task_type=TaskType.CAUSAL_LM,
             r=lora_rank,
@@ -82,13 +85,13 @@ class ClausePRM(nn.Module):
             bias='none',
         )
         self.backbone = get_peft_model(self.backbone, lora_config)
+        print("  LoRA attached.", flush=True)
 
         # ── Scalar regression head ────────────────────────────────────────
         hidden_size = self.backbone.config.hidden_size
-        self.score_head = nn.Sequential(
-            nn.Linear(hidden_size, 1),
-            nn.Sigmoid(),
-        )
+        backbone_device = next(self.backbone.parameters()).device
+        self.score_head = nn.Linear(hidden_size, 1).to(backbone_device)
+        print(f"  Score head: Linear({hidden_size} → 1) (device={backbone_device})", flush=True)
 
     def forward(
         self,
@@ -120,5 +123,4 @@ class ClausePRM(nn.Module):
         batch_idx   = torch.arange(last_hidden.size(0), device=last_hidden.device)
         last_token_hidden = last_hidden[batch_idx, seq_lengths]   # (batch, hidden)
 
-        scores = self.score_head(last_token_hidden).squeeze(-1)   # (batch,)
-        return scores
+        return self.score_head(last_token_hidden).squeeze(-1)   # (batch,) logits

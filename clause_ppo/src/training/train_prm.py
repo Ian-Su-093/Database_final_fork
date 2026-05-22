@@ -63,7 +63,7 @@ def _compute_score_gap(model, loader, device) -> tuple[float, float]:
     model.eval()
     total_bce, n_bce = 0.0, 0
     scores_pos, scores_neg = [], []
-    bce_fn = nn.BCELoss(reduction='mean')
+    bce_fn = nn.BCEWithLogitsLoss(reduction='mean')
 
     with torch.no_grad():
         for batch in loader:
@@ -71,8 +71,9 @@ def _compute_score_gap(model, loader, device) -> tuple[float, float]:
             mask   = batch['attention_mask'].to(device)
             labels = batch['label'].to(device)
             with torch.autocast(device_type='cuda', dtype=torch.bfloat16):
-                scores = model(ids, mask)
-                loss   = bce_fn(scores, labels)
+                logits = model(ids, mask)
+                loss   = bce_fn(logits, labels)
+                scores = torch.sigmoid(logits)
             total_bce += loss.item() * len(labels)
             n_bce     += len(labels)
             for s, l in zip(scores.cpu().tolist(), labels.cpu().tolist()):
@@ -102,7 +103,7 @@ def train_prm(config: dict, spider_dir: str, processed_dir: str):
     from models.prm import ClausePRM
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    print(f"Device: {device}")
+    print(f"Device: {device}", flush=True)
 
     mcfg = config['model']
     tcfg = config['training']
@@ -115,13 +116,13 @@ def train_prm(config: dict, spider_dir: str, processed_dir: str):
         os.makedirs(log_dir, exist_ok=True)
 
     # ── Tokenizer ─────────────────────────────────────────────────────────
-    print("Loading tokenizer ...")
+    print("Loading tokenizer ...", flush=True)
     tokenizer = AutoTokenizer.from_pretrained(mcfg['name'], use_fast=True)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
     # ── Dataset ────────────────────────────────────────────────────────────
-    print("Building dataset ...")
+    print("Building dataset ...", flush=True)
     full_ds = PRMDataset(
         processed_dir=processed_dir,
         tokenizer=tokenizer,
@@ -143,10 +144,10 @@ def train_prm(config: dict, spider_dir: str, processed_dir: str):
         dev_ds, batch_size=tcfg['batch_size'] * 2,
         shuffle=False, num_workers=2, pin_memory=(device.type == 'cuda'),
     )
-    print(f"Train items: {len(train_ds):,}  Dev items: {len(dev_ds):,}")
+    print(f"Train items: {len(train_ds):,}  Dev items: {len(dev_ds):,}", flush=True)
 
     # ── Model ──────────────────────────────────────────────────────────────
-    print("Loading model ...")
+    print("Loading model ...", flush=True)
     use_4bit = mcfg.get('quantization', '4bit') == '4bit'
     model = ClausePRM(
         model_name=mcfg['name'],
@@ -158,7 +159,7 @@ def train_prm(config: dict, spider_dir: str, processed_dir: str):
     )
     trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
     total     = sum(p.numel() for p in model.parameters())
-    print(f"Trainable params: {trainable:,} / {total:,} ({100*trainable/total:.2f}%)")
+    print(f"Trainable params: {trainable:,} / {total:,} ({100*trainable/total:.2f}%)", flush=True)
 
     # ── Optimiser & scheduler ──────────────────────────────────────────────
     optimizer = torch.optim.AdamW(
@@ -176,7 +177,7 @@ def train_prm(config: dict, spider_dir: str, processed_dir: str):
     )
 
     # ── Training loop ──────────────────────────────────────────────────────
-    bce_loss_fn = nn.BCELoss(reduction='mean')
+    bce_loss_fn = nn.BCEWithLogitsLoss(reduction='mean')
     lam         = tcfg.get('schema_grounding_lambda', 0.1)
 
     global_step = 0
@@ -208,7 +209,7 @@ def train_prm(config: dict, spider_dir: str, processed_dir: str):
                         [_schema_grounding_flag(t) for t in texts],
                         dtype=torch.float, device=device,
                     )
-                    grounding_loss = lam * (scores * sg_flags).mean()
+                    grounding_loss = lam * (torch.sigmoid(scores) * sg_flags).mean()
 
                 loss = (bce + grounding_loss) / tcfg['grad_accumulation_steps']
 
@@ -229,10 +230,11 @@ def train_prm(config: dict, spider_dir: str, processed_dir: str):
                     avg_loss   = accum_loss / ecfg['log_every']
                     accum_loss = 0.0
                     pbar.set_postfix(loss=f"{avg_loss:.4f}", step=global_step)
+                    print(f"  [step {global_step}] loss={avg_loss:.4f}", flush=True)
 
                 if global_step % ecfg['eval_every'] == 0:
                     dev_bce, gap = _compute_score_gap(model, dev_loader, device)
-                    print(f"\n[Step {global_step}] dev_bce={dev_bce:.4f}  score_gap={gap:.4f}")
+                    print(f"\n[Step {global_step}] dev_bce={dev_bce:.4f}  score_gap={gap:.4f}", flush=True)
                     entry = {'step': global_step, 'epoch': epoch + 1,
                              'dev_bce': dev_bce, 'score_gap': gap}
                     log_entries.append(entry)
@@ -244,14 +246,19 @@ def train_prm(config: dict, spider_dir: str, processed_dir: str):
                         ckpt_path = os.path.join(pcfg['output_dir'], 'best_checkpoint')
                         model.backbone.save_pretrained(ckpt_path)
                         tokenizer.save_pretrained(ckpt_path)
-                        print(f"  Saved best checkpoint → {ckpt_path}  (gap={gap:.4f})")
+                        torch.save(model.score_head.state_dict(),
+                                   os.path.join(ckpt_path, 'score_head.pt'))
+                        print(f"  Saved best checkpoint → {ckpt_path}  (gap={gap:.4f})", flush=True)
 
                     model.train()
 
         # End of epoch checkpoint
         ckpt_path = os.path.join(pcfg['output_dir'], f'epoch_{epoch + 1}')
         model.backbone.save_pretrained(ckpt_path)
-        print(f"Epoch {epoch + 1} checkpoint saved → {ckpt_path}")
+        tokenizer.save_pretrained(ckpt_path)
+        torch.save(model.score_head.state_dict(),
+                   os.path.join(ckpt_path, 'score_head.pt'))
+        print(f"Epoch {epoch + 1} checkpoint saved → {ckpt_path}", flush=True)
 
-    print(f"\nTraining complete. Best score_gap: {best_gap:.4f}")
+    print(f"\nTraining complete. Best score_gap: {best_gap:.4f}", flush=True)
     return log_entries
