@@ -135,6 +135,84 @@ Epoch checkpoints: `results/prm_checkpoints/epoch_N/`.
 
 Expected time: ~6–8 hours for 3 epochs on an RTX 4090.
 
+## Step 3 — Run Inference
+
+After training, score any clause prefix with the trained PRM.
+
+### Input format
+
+The model expects inputs in the same format used during training:
+
+```
+[QUESTION] {question} [SCHEMA] {schema} [PREFIX] {prefix_sql}
+```
+
+- **question**: the natural language question from Spider
+- **schema**: table/column schema string (e.g. `singer(singer_id, name, age), concert(concert_id, theme)`)
+- **prefix_sql**: a partial SQL query up to and including the clause being scored (e.g. `SELECT count(*) FROM singer`)
+
+The model returns a score in **(0, 1)**: higher means the prefix is more likely correct.
+
+### CLI
+
+```bash
+cd clause_ppo
+python scripts/score_clause.py \
+    --checkpoint results/prm_checkpoints/best_checkpoint \
+    --base_model /home/henrylin0822/models/qwen \
+    --question "How many singers are there?" \
+    --schema "singer(singer_id, name, age)" \
+    --prefix "SELECT count(*) FROM singer"
+```
+
+Output:
+```
+Score: 0.8123  (likely correct)
+```
+
+### Python API
+
+```python
+import sys
+sys.path.insert(0, 'src')
+from models.prm_inference import PRMScorer
+
+scorer = PRMScorer(
+    checkpoint_dir='results/prm_checkpoints/best_checkpoint',
+    base_model='/home/henrylin0822/models/qwen',
+)
+
+# Single example
+score = scorer.score(
+    question="How many singers are there?",
+    schema="singer(singer_id, name, age)",
+    prefix_sql="SELECT count(*) FROM singer",
+)
+print(score)  # e.g. 0.812
+
+# Batch
+scores = scorer.score_batch([
+    ("How many singers?", "singer(singer_id, name)", "SELECT count(*) FROM singer"),
+    ("How many singers?", "singer(singer_id, name)", "SELECT name FROM concert"),  # corrupted
+])
+print(scores)  # e.g. [0.81, 0.23]
+```
+
+### Checkpoint contents
+
+Each checkpoint directory contains:
+
+| File | Description |
+|------|-------------|
+| `adapter_config.json` | LoRA adapter config |
+| `adapter_model.safetensors` | LoRA weights |
+| `score_head.pt` | Regression head weights |
+| `tokenizer.json` / `tokenizer_config.json` | Tokenizer |
+
+> **Note:** `score_clause.py` has not been run end-to-end yet — treat as untested until a full training run completes and produces a `best_checkpoint`.
+
+---
+
 ## Expected Outputs
 
 | File | Description |
@@ -162,8 +240,10 @@ Expected time: ~6–8 hours for 3 epochs on an RTX 4090.
 | `src/data/clause_splitter.py` | Clause splitting in execution order |
 | `src/data/corruption.py` | Rule-based SQL corruption engine |
 | `src/data/dataset.py` | PRMDataset with cascade labeling + schema dropout |
-| `src/models/prm.py` | CodeLlama-7B 4-bit QLoRA + LoRA + sigmoid head |
+| `src/models/prm.py` | Qwen2.5-Coder 4-bit QLoRA + LoRA + regression head |
+| `src/models/prm_inference.py` | PRMScorer: load checkpoint and score prefixes |
 | `src/training/train_prm.py` | BCE + schema-grounding training loop |
+| `scripts/score_clause.py` | CLI for scoring a single clause prefix |
 
 ## Corruption Dataset Statistics (100-example smoke test)
 
