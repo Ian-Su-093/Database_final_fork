@@ -13,7 +13,7 @@ import re
 from typing import Optional
 
 from data.clause_splitter import CLAUSE_ORDER
-from utils.execution import fetch_results, query_result_similarity
+from utils.execution import execute_query, query_result_similarity
 
 # Surface-order keywords in reconstruct_sql output
 _SURFACE_KEYWORDS = [
@@ -188,8 +188,8 @@ def compute_clause_rewards(
     db_available = bool(db_path) and os.path.isfile(db_path)
 
     if db_available:
-        ok_gold, gold_rows = fetch_results(record['original_query'], db_path)
-        ok_corr, corr_rows = fetch_results(record['corrupted_query'], db_path)
+        ok_gold, gold_rows = execute_query(record['original_query'], db_path, allow_empty=True)
+        ok_corr, corr_rows = execute_query(record['corrupted_query'], db_path, allow_empty=True)
         query_executable = ok_gold and ok_corr
         sim = (
             query_result_similarity(
