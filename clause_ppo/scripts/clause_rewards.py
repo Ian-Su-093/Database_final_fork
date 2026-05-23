@@ -10,7 +10,10 @@ from __future__ import annotations
 
 import os
 import re
+import sys
 from typing import Optional
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from data.clause_splitter import CLAUSE_ORDER
 from utils.execution import execute_query, query_result_similarity
