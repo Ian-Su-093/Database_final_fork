@@ -99,3 +99,57 @@ def queries_produce_same_result(q1: str, q2: str, db_path: str,
         return False
 
     return sorted(_normalize_row(r) for r in r1) == sorted(_normalize_row(r) for r in r2)
+
+
+def fetch_results(query: str, db_path: str,
+                  timeout_secs: float = 5.0) -> tuple[bool, Optional[list]]:
+    """
+    Execute *query* and return rows without treating empty results as failure.
+
+    Returns:
+        (True,  list[list])  — query ran (rows may be empty).
+        (False, None)        — exception or timeout.
+    """
+    def _run():
+        conn = sqlite3.connect(db_path)
+        try:
+            cur = conn.cursor()
+            cur.execute(query)
+            return [list(r) for r in cur.fetchall()]
+        finally:
+            conn.close()
+
+    try:
+        rows = _run_with_timeout(_run, timeout_secs)
+    except (_QueryTimeoutError, Exception):
+        return False, None
+    return True, rows
+
+
+def result_set_similarity(rows_a: list, rows_b: list) -> float:
+    """
+    Multiset Jaccard similarity between two result sets (0..1).
+    Uses normalized rows for numeric comparison.
+    """
+    if not rows_a and not rows_b:
+        return 1.0
+    if not rows_a or not rows_b:
+        return 0.0
+
+    from collections import Counter
+
+    ca = Counter(_normalize_row(r) for r in rows_a)
+    cb = Counter(_normalize_row(r) for r in rows_b)
+    intersection = sum((ca & cb).values())
+    union = sum((ca | cb).values())
+    return intersection / union if union else 1.0
+
+
+def query_result_similarity(q_gold: str, q_corr: str, db_path: str,
+                            timeout_secs: float = 5.0) -> float:
+    """Jaccard similarity between gold and corrupted query result sets."""
+    ok_g, rg = fetch_results(q_gold, db_path, timeout_secs)
+    ok_c, rc = fetch_results(q_corr, db_path, timeout_secs)
+    if not ok_g or not ok_c:
+        return 0.0
+    return result_set_similarity(rg, rc)

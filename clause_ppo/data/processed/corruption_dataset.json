@@ -6,7 +6,12 @@
     "corrupted_query": "SELECT COUNT(*) FROM department WHERE age > 56.0",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "department_management",
@@ -15,7 +20,12 @@
     "corrupted_query": "SELECT COUNT(*) FROM head WHERE age NOT > 56.0",
     "corrupted_clause": "where",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_where"
+    "corruption_strategy": "corrupt_where",
+    "reward": [
+      1.0,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "department_management",
@@ -24,7 +34,12 @@
     "corrupted_query": "SELECT MAX(*) FROM head WHERE age > 56.0",
     "corrupted_clause": "select",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      0.0
+    ]
   },
   {
     "db_id": "department_management",
@@ -33,7 +48,12 @@
     "corrupted_query": "SELECT name, born_state, age FROM department ORDER BY age ASC",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "department_management",
@@ -42,7 +62,12 @@
     "corrupted_query": "SELECT born_state, age FROM head ORDER BY age ASC",
     "corrupted_clause": "select",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      0.25,
+      0.0
+    ]
   },
   {
     "db_id": "department_management",
@@ -51,7 +76,11 @@
     "corrupted_query": "SELECT Creation, Name, Budget_in_Billions FROM head",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0
+    ]
   },
   {
     "db_id": "department_management",
@@ -60,7 +89,11 @@
     "corrupted_query": "SELECT Name, Budget_in_Billions FROM department",
     "corrupted_clause": "select",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      0.25
+    ]
   },
   {
     "db_id": "department_management",
@@ -69,7 +102,11 @@
     "corrupted_query": "SELECT MAX(Budget_in_Billions), MIN(Budget_in_Billions) FROM head",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0
+    ]
   },
   {
     "db_id": "department_management",
@@ -78,7 +115,11 @@
     "corrupted_query": "SELECT MIN(Budget_in_Billions), MIN(Budget_in_Billions) FROM department",
     "corrupted_clause": "select",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      0.15
+    ]
   },
   {
     "db_id": "department_management",
@@ -87,7 +128,12 @@
     "corrupted_query": "SELECT AVG(Num_Employees) FROM head WHERE Ranking BETWEEN 10.0 AND 15.0",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "department_management",
@@ -96,7 +142,12 @@
     "corrupted_query": "SELECT AVG(Num_Employees) FROM department WHERE Ranking NOT BETWEEN 10.0 AND 15.0",
     "corrupted_clause": "where",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_where"
+    "corruption_strategy": "corrupt_where",
+    "reward": [
+      1.0,
+      0.12,
+      0.0
+    ]
   },
   {
     "db_id": "department_management",
@@ -105,7 +156,12 @@
     "corrupted_query": "SELECT MAX(Num_Employees) FROM department WHERE Ranking BETWEEN 10.0 AND 15.0",
     "corrupted_clause": "select",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      0.15
+    ]
   },
   {
     "db_id": "department_management",
@@ -114,7 +170,12 @@
     "corrupted_query": "SELECT name FROM department WHERE born_state != 'California'",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "department_management",
@@ -123,7 +184,12 @@
     "corrupted_query": "SELECT name FROM head WHERE born_state NOT != 'California'",
     "corrupted_clause": "where",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_where"
+    "corruption_strategy": "corrupt_where",
+    "reward": [
+      1.0,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "department_management",
@@ -132,7 +198,12 @@
     "corrupted_query": "SELECT born_state FROM head WHERE born_state != 'California'",
     "corrupted_clause": "select",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      0.2
+    ]
   },
   {
     "db_id": "department_management",
@@ -141,7 +212,12 @@
     "corrupted_query": "SELECT DISTINCT department.Creation FROM department, management WHERE department.Department_ID = management.department_ID AND born_state = 'Alabama'",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.1,
+      0.15,
+      0.0
+    ]
   },
   {
     "db_id": "department_management",
@@ -150,7 +226,12 @@
     "corrupted_query": "SELECT DISTINCT department.Creation FROM department, management, head WHERE department.Department_ID = management.department_ID AND management.head_ID = head.head_ID AND head.born_state NOT = 'Alabama'",
     "corrupted_clause": "where",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_where"
+    "corruption_strategy": "corrupt_where",
+    "reward": [
+      1.0,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "department_management",
@@ -159,7 +240,12 @@
     "corrupted_query": "SELECT DISTINCT department.Name FROM department, management, head WHERE department.Department_ID = management.department_ID AND management.head_ID = head.head_ID AND head.born_state = 'Alabama'",
     "corrupted_clause": "select",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      0.2
+    ]
   },
   {
     "db_id": "department_management",
@@ -168,7 +254,13 @@
     "corrupted_query": "SELECT born_state FROM department GROUP BY born_state HAVING COUNT(*) >= 3.0",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "department_management",
@@ -177,7 +269,13 @@
     "corrupted_query": "SELECT born_state FROM head GROUP BY head_ID HAVING COUNT(*) >= 3.0",
     "corrupted_clause": "groupBy",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_groupBy"
+    "corruption_strategy": "corrupt_groupBy",
+    "reward": [
+      1.0,
+      0.18,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "department_management",
@@ -186,7 +284,13 @@
     "corrupted_query": "SELECT born_state FROM head GROUP BY born_state HAVING COUNT(*) <= 3.0",
     "corrupted_clause": "having",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_having"
+    "corruption_strategy": "corrupt_having",
+    "reward": [
+      1.0,
+      1.0,
+      0.15,
+      0.0
+    ]
   },
   {
     "db_id": "department_management",
@@ -195,7 +299,13 @@
     "corrupted_query": "SELECT name FROM head GROUP BY born_state HAVING COUNT(*) >= 3.0",
     "corrupted_clause": "select",
     "corrupted_position": 3,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      1.0,
+      0.2
+    ]
   },
   {
     "db_id": "department_management",
@@ -204,7 +314,13 @@
     "corrupted_query": "SELECT Creation FROM head GROUP BY Creation ORDER BY COUNT(*) DESC LIMIT 1",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "department_management",
@@ -213,7 +329,13 @@
     "corrupted_query": "SELECT Name FROM department GROUP BY Creation ORDER BY COUNT(*) DESC LIMIT 1",
     "corrupted_clause": "select",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      0.2,
+      0.0
+    ]
   },
   {
     "db_id": "department_management",
@@ -222,7 +344,13 @@
     "corrupted_query": "SELECT Creation FROM department GROUP BY Creation ORDER BY COUNT(*) ASC LIMIT 1",
     "corrupted_clause": "orderBy",
     "corrupted_position": 3,
-    "corruption_strategy": "corrupt_orderBy"
+    "corruption_strategy": "corrupt_orderBy",
+    "reward": [
+      1.0,
+      1.0,
+      1.0,
+      0.3
+    ]
   },
   {
     "db_id": "department_management",
@@ -231,7 +359,12 @@
     "corrupted_query": "SELECT Name, Num_Employees FROM department WHERE temporary_acting = 'Yes'",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.1,
+      0.15,
+      0.15
+    ]
   },
   {
     "db_id": "department_management",
@@ -240,7 +373,12 @@
     "corrupted_query": "SELECT department.Name, department.Num_Employees FROM department, management WHERE department.Department_ID = management.department_ID AND management.temporary_acting NOT = 'Yes'",
     "corrupted_clause": "where",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_where"
+    "corruption_strategy": "corrupt_where",
+    "reward": [
+      1.0,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "department_management",
@@ -249,7 +387,12 @@
     "corrupted_query": "SELECT department.Num_Employees FROM department, management WHERE department.Department_ID = management.department_ID AND management.temporary_acting = 'Yes'",
     "corrupted_clause": "select",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      0.25
+    ]
   },
   {
     "db_id": "department_management",
@@ -258,7 +401,11 @@
     "corrupted_query": "SELECT COUNT(DISTINCT temporary_acting) FROM department",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0
+    ]
   },
   {
     "db_id": "department_management",
@@ -267,7 +414,11 @@
     "corrupted_query": "SELECT MAX(DISTINCT temporary_acting) FROM management",
     "corrupted_clause": "select",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      0.15
+    ]
   },
   {
     "db_id": "department_management",
@@ -276,7 +427,12 @@
     "corrupted_query": "SELECT COUNT(*) FROM head WHERE Department_ID NOT IN ((SELECT department_ID FROM management))",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "department_management",
@@ -285,7 +441,12 @@
     "corrupted_query": "SELECT COUNT(*) FROM department WHERE Department_ID IN ((SELECT department_ID FROM management))",
     "corrupted_clause": "where",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_where"
+    "corruption_strategy": "corrupt_where",
+    "reward": [
+      1.0,
+      0.12,
+      0.0
+    ]
   },
   {
     "db_id": "department_management",
@@ -294,7 +455,12 @@
     "corrupted_query": "SELECT MAX(*) FROM department WHERE Department_ID NOT IN ((SELECT department_ID FROM management))",
     "corrupted_clause": "select",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      0.0
+    ]
   },
   {
     "db_id": "department_management",
@@ -303,7 +469,12 @@
     "corrupted_query": "SELECT DISTINCT age FROM management WHERE temporary_acting = 'Yes'",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.1,
+      0.15,
+      0.15
+    ]
   },
   {
     "db_id": "department_management",
@@ -312,7 +483,12 @@
     "corrupted_query": "SELECT DISTINCT head.age FROM management, head WHERE head.head_ID = management.head_ID AND management.temporary_acting NOT = 'Yes'",
     "corrupted_clause": "where",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_where"
+    "corruption_strategy": "corrupt_where",
+    "reward": [
+      1.0,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "department_management",
@@ -321,7 +497,12 @@
     "corrupted_query": "SELECT DISTINCT head.head_ID FROM management, head WHERE head.head_ID = management.head_ID AND management.temporary_acting = 'Yes'",
     "corrupted_clause": "select",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      0.2
+    ]
   },
   {
     "db_id": "department_management",
@@ -330,7 +511,12 @@
     "corrupted_query": "SELECT born_state FROM department, management WHERE department.Department_ID = management.department_ID AND department.Name = 'Treasury' INTERSECT SELECT head.born_state FROM department, management, head WHERE department.Department_ID = management.department_ID AND management.head_ID = head.head_ID AND department.Name = 'Homeland Security'",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.1,
+      0.15,
+      0.15
+    ]
   },
   {
     "db_id": "department_management",
@@ -339,7 +525,12 @@
     "corrupted_query": "SELECT head.born_state FROM department, management, head WHERE department.Department_ID = management.department_ID AND management.head_ID = head.head_ID AND department.Name NOT = 'Treasury' INTERSECT SELECT head.born_state FROM department, management, head WHERE department.Department_ID = management.department_ID AND management.head_ID = head.head_ID AND department.Name = 'Homeland Security'",
     "corrupted_clause": "where",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_where"
+    "corruption_strategy": "corrupt_where",
+    "reward": [
+      1.0,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "department_management",
@@ -348,7 +539,12 @@
     "corrupted_query": "SELECT head.name FROM department, management, head WHERE department.Department_ID = management.department_ID AND management.head_ID = head.head_ID AND department.Name = 'Treasury' INTERSECT SELECT head.born_state FROM department, management, head WHERE department.Department_ID = management.department_ID AND management.head_ID = head.head_ID AND department.Name = 'Homeland Security'",
     "corrupted_clause": "select",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      0.2
+    ]
   },
   {
     "db_id": "department_management",
@@ -357,7 +553,13 @@
     "corrupted_query": "SELECT Department_ID, Name, COUNT(*) FROM management GROUP BY Department_ID HAVING COUNT(*) > 1.0",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.1,
+      0.15,
+      0.0,
+      0.15
+    ]
   },
   {
     "db_id": "department_management",
@@ -366,7 +568,13 @@
     "corrupted_query": "SELECT department.Department_ID, department.Name, COUNT(*) FROM management, department WHERE department.Department_ID = management.department_ID GROUP BY department.Department_ID HAVING COUNT(*) < 1.0",
     "corrupted_clause": "having",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_having"
+    "corruption_strategy": "corrupt_having",
+    "reward": [
+      1.0,
+      1.0,
+      0.15,
+      0.0
+    ]
   },
   {
     "db_id": "department_management",
@@ -375,7 +583,13 @@
     "corrupted_query": "SELECT department.Department_ID, department.Name, MAX(*) FROM management, department WHERE department.Department_ID = management.department_ID GROUP BY department.Department_ID HAVING COUNT(*) > 1.0",
     "corrupted_clause": "select",
     "corrupted_position": 3,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      1.0,
+      0.0
+    ]
   },
   {
     "db_id": "department_management",
@@ -384,7 +598,12 @@
     "corrupted_query": "SELECT head_ID, name FROM department WHERE name LIKE '%Ha%'",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "department_management",
@@ -393,7 +612,12 @@
     "corrupted_query": "SELECT head_ID, name FROM head WHERE name NOT LIKE '%Ha%'",
     "corrupted_clause": "where",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_where"
+    "corruption_strategy": "corrupt_where",
+    "reward": [
+      1.0,
+      0.12,
+      0.0
+    ]
   },
   {
     "db_id": "department_management",
@@ -402,7 +626,12 @@
     "corrupted_query": "SELECT name FROM head WHERE name LIKE '%Ha%'",
     "corrupted_clause": "select",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      0.25
+    ]
   },
   {
     "db_id": "farm",
@@ -411,7 +640,11 @@
     "corrupted_query": "SELECT COUNT(*) FROM city",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -420,7 +653,11 @@
     "corrupted_query": "SELECT MAX(*) FROM farm",
     "corrupted_clause": "select",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -429,7 +666,11 @@
     "corrupted_query": "SELECT COUNT(*) FROM city",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -438,7 +679,11 @@
     "corrupted_query": "SELECT MAX(*) FROM farm",
     "corrupted_clause": "select",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -447,7 +692,12 @@
     "corrupted_query": "SELECT Total_Horses FROM city ORDER BY Total_Horses ASC",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -456,7 +706,12 @@
     "corrupted_query": "SELECT Farm_ID FROM farm ORDER BY Total_Horses ASC",
     "corrupted_clause": "select",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      0.2,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -465,7 +720,12 @@
     "corrupted_query": "SELECT Total_Horses FROM city ORDER BY Total_Horses ASC",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -474,7 +734,12 @@
     "corrupted_query": "SELECT Farm_ID FROM farm ORDER BY Total_Horses ASC",
     "corrupted_clause": "select",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      0.2,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -483,7 +748,12 @@
     "corrupted_query": "SELECT Hosts FROM city WHERE Theme != 'Aliens'",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -492,7 +762,12 @@
     "corrupted_query": "SELECT Hosts FROM farm_competition WHERE Theme NOT != 'Aliens'",
     "corrupted_clause": "where",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_where"
+    "corruption_strategy": "corrupt_where",
+    "reward": [
+      1.0,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -501,7 +776,12 @@
     "corrupted_query": "SELECT Theme FROM farm_competition WHERE Theme != 'Aliens'",
     "corrupted_clause": "select",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      0.2
+    ]
   },
   {
     "db_id": "farm",
@@ -510,7 +790,12 @@
     "corrupted_query": "SELECT Hosts FROM city WHERE Theme != 'Aliens'",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -519,7 +804,12 @@
     "corrupted_query": "SELECT Hosts FROM farm_competition WHERE Theme NOT != 'Aliens'",
     "corrupted_clause": "where",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_where"
+    "corruption_strategy": "corrupt_where",
+    "reward": [
+      1.0,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -528,7 +818,12 @@
     "corrupted_query": "SELECT Theme FROM farm_competition WHERE Theme != 'Aliens'",
     "corrupted_clause": "select",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      0.2
+    ]
   },
   {
     "db_id": "farm",
@@ -537,7 +832,12 @@
     "corrupted_query": "SELECT Theme FROM city ORDER BY Year ASC",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -546,7 +846,12 @@
     "corrupted_query": "SELECT Hosts FROM farm_competition ORDER BY Year ASC",
     "corrupted_clause": "select",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      0.2,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -555,7 +860,12 @@
     "corrupted_query": "SELECT Theme FROM city ORDER BY Year ASC",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -564,7 +874,12 @@
     "corrupted_query": "SELECT Hosts FROM farm_competition ORDER BY Year ASC",
     "corrupted_clause": "select",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      0.2,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -573,7 +888,12 @@
     "corrupted_query": "SELECT AVG(Working_Horses) FROM city WHERE Total_Horses > 5000.0",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -582,7 +902,12 @@
     "corrupted_query": "SELECT AVG(Working_Horses) FROM farm WHERE Total_Horses NOT > 5000.0",
     "corrupted_clause": "where",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_where"
+    "corruption_strategy": "corrupt_where",
+    "reward": [
+      1.0,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -591,7 +916,12 @@
     "corrupted_query": "SELECT MAX(Working_Horses) FROM farm WHERE Total_Horses > 5000.0",
     "corrupted_clause": "select",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      0.15
+    ]
   },
   {
     "db_id": "farm",
@@ -600,7 +930,12 @@
     "corrupted_query": "SELECT AVG(Working_Horses) FROM city WHERE Total_Horses > 5000.0",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -609,7 +944,12 @@
     "corrupted_query": "SELECT AVG(Working_Horses) FROM farm WHERE Total_Horses NOT > 5000.0",
     "corrupted_clause": "where",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_where"
+    "corruption_strategy": "corrupt_where",
+    "reward": [
+      1.0,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -618,7 +958,12 @@
     "corrupted_query": "SELECT MAX(Working_Horses) FROM farm WHERE Total_Horses > 5000.0",
     "corrupted_clause": "select",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      0.15
+    ]
   },
   {
     "db_id": "farm",
@@ -627,7 +972,11 @@
     "corrupted_query": "SELECT MAX(Cows), MIN(Cows) FROM city",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -636,7 +985,11 @@
     "corrupted_query": "SELECT MIN(Cows), MIN(Cows) FROM farm",
     "corrupted_clause": "select",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      0.15
+    ]
   },
   {
     "db_id": "farm",
@@ -645,7 +998,11 @@
     "corrupted_query": "SELECT MAX(Cows), MIN(Cows) FROM city",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -654,7 +1011,11 @@
     "corrupted_query": "SELECT MIN(Cows), MIN(Cows) FROM farm",
     "corrupted_clause": "select",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      0.15
+    ]
   },
   {
     "db_id": "farm",
@@ -663,7 +1024,11 @@
     "corrupted_query": "SELECT COUNT(DISTINCT Status) FROM farm",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -672,7 +1037,11 @@
     "corrupted_query": "SELECT MAX(DISTINCT Status) FROM city",
     "corrupted_clause": "select",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      0.15
+    ]
   },
   {
     "db_id": "farm",
@@ -681,7 +1050,11 @@
     "corrupted_query": "SELECT COUNT(DISTINCT Status) FROM farm",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -690,7 +1063,11 @@
     "corrupted_query": "SELECT MAX(DISTINCT Status) FROM city",
     "corrupted_clause": "select",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      0.15
+    ]
   },
   {
     "db_id": "farm",
@@ -699,7 +1076,12 @@
     "corrupted_query": "SELECT Official_Name FROM farm ORDER BY Population DESC",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -708,7 +1090,12 @@
     "corrupted_query": "SELECT Status FROM city ORDER BY Population DESC",
     "corrupted_clause": "select",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      0.2,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -717,7 +1104,12 @@
     "corrupted_query": "SELECT Official_Name FROM farm ORDER BY Population DESC",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -726,7 +1118,12 @@
     "corrupted_query": "SELECT Status FROM city ORDER BY Population DESC",
     "corrupted_clause": "select",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      0.2,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -735,7 +1132,12 @@
     "corrupted_query": "SELECT Official_Name, Status FROM farm ORDER BY Population DESC LIMIT 1",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -744,7 +1146,12 @@
     "corrupted_query": "SELECT Status FROM city ORDER BY Population DESC LIMIT 1",
     "corrupted_clause": "select",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      0.25,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -753,7 +1160,12 @@
     "corrupted_query": "SELECT Official_Name, Status FROM city ORDER BY Population ASC LIMIT 1",
     "corrupted_clause": "orderBy",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_orderBy"
+    "corruption_strategy": "corrupt_orderBy",
+    "reward": [
+      1.0,
+      1.0,
+      0.3
+    ]
   },
   {
     "db_id": "farm",
@@ -762,7 +1174,12 @@
     "corrupted_query": "SELECT Official_Name, Status FROM farm ORDER BY Population DESC LIMIT 1",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -771,7 +1188,12 @@
     "corrupted_query": "SELECT Status FROM city ORDER BY Population DESC LIMIT 1",
     "corrupted_clause": "select",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      0.25,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -780,7 +1202,12 @@
     "corrupted_query": "SELECT Official_Name, Status FROM city ORDER BY Population ASC LIMIT 1",
     "corrupted_clause": "orderBy",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_orderBy"
+    "corruption_strategy": "corrupt_orderBy",
+    "reward": [
+      1.0,
+      1.0,
+      0.3
+    ]
   },
   {
     "db_id": "farm",
@@ -789,7 +1216,11 @@
     "corrupted_query": "SELECT Year, Official_Name FROM city",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.1,
+      0.15
+    ]
   },
   {
     "db_id": "farm",
@@ -798,7 +1229,11 @@
     "corrupted_query": "SELECT city.Official_Name FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID",
     "corrupted_clause": "select",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      0.25
+    ]
   },
   {
     "db_id": "farm",
@@ -807,7 +1242,11 @@
     "corrupted_query": "SELECT Year, Official_Name FROM city",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.1,
+      0.15
+    ]
   },
   {
     "db_id": "farm",
@@ -816,7 +1255,11 @@
     "corrupted_query": "SELECT city.Official_Name FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID",
     "corrupted_clause": "select",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      0.25
+    ]
   },
   {
     "db_id": "farm",
@@ -825,7 +1268,13 @@
     "corrupted_query": "SELECT Official_Name FROM city GROUP BY Host_city_ID HAVING COUNT(*) > 1.0",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.1,
+      0.15,
+      0.0,
+      0.15
+    ]
   },
   {
     "db_id": "farm",
@@ -834,7 +1283,13 @@
     "corrupted_query": "SELECT city.Official_Name FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID GROUP BY farm_competition.Competition_ID HAVING COUNT(*) > 1.0",
     "corrupted_clause": "groupBy",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_groupBy"
+    "corruption_strategy": "corrupt_groupBy",
+    "reward": [
+      1.0,
+      0.18,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -843,7 +1298,13 @@
     "corrupted_query": "SELECT city.Official_Name FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID GROUP BY farm_competition.Host_city_ID HAVING COUNT(*) < 1.0",
     "corrupted_clause": "having",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_having"
+    "corruption_strategy": "corrupt_having",
+    "reward": [
+      1.0,
+      1.0,
+      0.15,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -852,7 +1313,13 @@
     "corrupted_query": "SELECT city.Status FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID GROUP BY farm_competition.Host_city_ID HAVING COUNT(*) > 1.0",
     "corrupted_clause": "select",
     "corrupted_position": 3,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      1.0,
+      0.2
+    ]
   },
   {
     "db_id": "farm",
@@ -861,7 +1328,13 @@
     "corrupted_query": "SELECT Official_Name FROM city GROUP BY Host_city_ID HAVING COUNT(*) > 1.0",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.1,
+      0.15,
+      0.0,
+      0.15
+    ]
   },
   {
     "db_id": "farm",
@@ -870,7 +1343,13 @@
     "corrupted_query": "SELECT city.Official_Name FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID GROUP BY farm_competition.Competition_ID HAVING COUNT(*) > 1.0",
     "corrupted_clause": "groupBy",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_groupBy"
+    "corruption_strategy": "corrupt_groupBy",
+    "reward": [
+      1.0,
+      0.18,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -879,7 +1358,13 @@
     "corrupted_query": "SELECT city.Official_Name FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID GROUP BY farm_competition.Host_city_ID HAVING COUNT(*) < 1.0",
     "corrupted_clause": "having",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_having"
+    "corruption_strategy": "corrupt_having",
+    "reward": [
+      1.0,
+      1.0,
+      0.15,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -888,7 +1373,13 @@
     "corrupted_query": "SELECT city.Status FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID GROUP BY farm_competition.Host_city_ID HAVING COUNT(*) > 1.0",
     "corrupted_clause": "select",
     "corrupted_position": 3,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      1.0,
+      0.2
+    ]
   },
   {
     "db_id": "farm",
@@ -897,7 +1388,13 @@
     "corrupted_query": "SELECT Status FROM city GROUP BY Host_city_ID ORDER BY COUNT(*) DESC LIMIT 1",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.1,
+      0.15,
+      0.15,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -906,7 +1403,13 @@
     "corrupted_query": "SELECT city.Status FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID GROUP BY farm_competition.Competition_ID ORDER BY COUNT(*) DESC LIMIT 1",
     "corrupted_clause": "groupBy",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_groupBy"
+    "corruption_strategy": "corrupt_groupBy",
+    "reward": [
+      1.0,
+      0.18,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -915,7 +1418,13 @@
     "corrupted_query": "SELECT city.Official_Name FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID GROUP BY farm_competition.Host_city_ID ORDER BY COUNT(*) DESC LIMIT 1",
     "corrupted_clause": "select",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      0.2,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -924,7 +1433,13 @@
     "corrupted_query": "SELECT city.Status FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID GROUP BY farm_competition.Host_city_ID ORDER BY COUNT(*) ASC LIMIT 1",
     "corrupted_clause": "orderBy",
     "corrupted_position": 3,
-    "corruption_strategy": "corrupt_orderBy"
+    "corruption_strategy": "corrupt_orderBy",
+    "reward": [
+      1.0,
+      1.0,
+      1.0,
+      0.3
+    ]
   },
   {
     "db_id": "farm",
@@ -933,7 +1448,13 @@
     "corrupted_query": "SELECT Status FROM city GROUP BY Host_city_ID ORDER BY COUNT(*) DESC LIMIT 1",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.1,
+      0.15,
+      0.15,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -942,7 +1463,13 @@
     "corrupted_query": "SELECT city.Status FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID GROUP BY farm_competition.Competition_ID ORDER BY COUNT(*) DESC LIMIT 1",
     "corrupted_clause": "groupBy",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_groupBy"
+    "corruption_strategy": "corrupt_groupBy",
+    "reward": [
+      1.0,
+      0.18,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -951,7 +1478,13 @@
     "corrupted_query": "SELECT city.Official_Name FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID GROUP BY farm_competition.Host_city_ID ORDER BY COUNT(*) DESC LIMIT 1",
     "corrupted_clause": "select",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      0.2,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -960,7 +1493,13 @@
     "corrupted_query": "SELECT city.Status FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID GROUP BY farm_competition.Host_city_ID ORDER BY COUNT(*) ASC LIMIT 1",
     "corrupted_clause": "orderBy",
     "corrupted_position": 3,
-    "corruption_strategy": "corrupt_orderBy"
+    "corruption_strategy": "corrupt_orderBy",
+    "reward": [
+      1.0,
+      1.0,
+      1.0,
+      0.3
+    ]
   },
   {
     "db_id": "farm",
@@ -969,7 +1508,12 @@
     "corrupted_query": "SELECT Theme FROM city WHERE Population > 1000.0",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.1,
+      0.15,
+      0.15
+    ]
   },
   {
     "db_id": "farm",
@@ -978,7 +1522,12 @@
     "corrupted_query": "SELECT farm_competition.Theme FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID AND city.Population NOT > 1000.0",
     "corrupted_clause": "where",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_where"
+    "corruption_strategy": "corrupt_where",
+    "reward": [
+      1.0,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -987,7 +1536,12 @@
     "corrupted_query": "SELECT farm_competition.Hosts FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID AND city.Population > 1000.0",
     "corrupted_clause": "select",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      0.2
+    ]
   },
   {
     "db_id": "farm",
@@ -996,7 +1550,12 @@
     "corrupted_query": "SELECT Theme FROM city WHERE Population > 1000.0",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.1,
+      0.15,
+      0.15
+    ]
   },
   {
     "db_id": "farm",
@@ -1005,7 +1564,12 @@
     "corrupted_query": "SELECT farm_competition.Theme FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID AND city.Population NOT > 1000.0",
     "corrupted_clause": "where",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_where"
+    "corruption_strategy": "corrupt_where",
+    "reward": [
+      1.0,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -1014,7 +1578,12 @@
     "corrupted_query": "SELECT farm_competition.Hosts FROM city, farm_competition WHERE city.City_ID = farm_competition.Host_city_ID AND city.Population > 1000.0",
     "corrupted_clause": "select",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      0.2
+    ]
   },
   {
     "db_id": "farm",
@@ -1023,7 +1592,12 @@
     "corrupted_query": "SELECT Status, AVG(Population) FROM farm GROUP BY Status",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -1032,7 +1606,12 @@
     "corrupted_query": "SELECT Status, AVG(Population) FROM city GROUP BY City_ID",
     "corrupted_clause": "groupBy",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_groupBy"
+    "corruption_strategy": "corrupt_groupBy",
+    "reward": [
+      1.0,
+      0.18,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -1041,7 +1620,12 @@
     "corrupted_query": "SELECT Status, MAX(Population) FROM city GROUP BY Status",
     "corrupted_clause": "select",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      0.15
+    ]
   },
   {
     "db_id": "farm",
@@ -1050,7 +1634,12 @@
     "corrupted_query": "SELECT Status, AVG(Population) FROM farm GROUP BY Status",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -1059,7 +1648,12 @@
     "corrupted_query": "SELECT Status, AVG(Population) FROM city GROUP BY City_ID",
     "corrupted_clause": "groupBy",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_groupBy"
+    "corruption_strategy": "corrupt_groupBy",
+    "reward": [
+      1.0,
+      0.18,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -1068,7 +1662,12 @@
     "corrupted_query": "SELECT Status, MAX(Population) FROM city GROUP BY Status",
     "corrupted_clause": "select",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      0.15
+    ]
   },
   {
     "db_id": "farm",
@@ -1077,7 +1676,13 @@
     "corrupted_query": "SELECT Status FROM farm GROUP BY Status ORDER BY COUNT(*) ASC",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -1086,7 +1691,13 @@
     "corrupted_query": "SELECT Status FROM city GROUP BY City_ID ORDER BY COUNT(*) ASC",
     "corrupted_clause": "groupBy",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_groupBy"
+    "corruption_strategy": "corrupt_groupBy",
+    "reward": [
+      1.0,
+      0.18,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -1095,7 +1706,13 @@
     "corrupted_query": "SELECT Official_Name FROM city GROUP BY Status ORDER BY COUNT(*) ASC",
     "corrupted_clause": "select",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      0.2,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -1104,7 +1721,13 @@
     "corrupted_query": "SELECT Status FROM farm GROUP BY Status ORDER BY COUNT(*) ASC",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -1113,7 +1736,13 @@
     "corrupted_query": "SELECT Status FROM city GROUP BY City_ID ORDER BY COUNT(*) ASC",
     "corrupted_clause": "groupBy",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_groupBy"
+    "corruption_strategy": "corrupt_groupBy",
+    "reward": [
+      1.0,
+      0.18,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -1122,7 +1751,13 @@
     "corrupted_query": "SELECT Official_Name FROM city GROUP BY Status ORDER BY COUNT(*) ASC",
     "corrupted_clause": "select",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      0.2,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -1131,7 +1766,13 @@
     "corrupted_query": "SELECT Status FROM farm GROUP BY Status ORDER BY COUNT(*) DESC LIMIT 1",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -1140,7 +1781,13 @@
     "corrupted_query": "SELECT Status FROM city GROUP BY City_ID ORDER BY COUNT(*) DESC LIMIT 1",
     "corrupted_clause": "groupBy",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_groupBy"
+    "corruption_strategy": "corrupt_groupBy",
+    "reward": [
+      1.0,
+      0.18,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -1149,7 +1796,13 @@
     "corrupted_query": "SELECT Official_Name FROM city GROUP BY Status ORDER BY COUNT(*) DESC LIMIT 1",
     "corrupted_clause": "select",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      0.2,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -1158,7 +1811,13 @@
     "corrupted_query": "SELECT Status FROM city GROUP BY Status ORDER BY COUNT(*) ASC LIMIT 1",
     "corrupted_clause": "orderBy",
     "corrupted_position": 3,
-    "corruption_strategy": "corrupt_orderBy"
+    "corruption_strategy": "corrupt_orderBy",
+    "reward": [
+      1.0,
+      1.0,
+      1.0,
+      0.3
+    ]
   },
   {
     "db_id": "farm",
@@ -1167,7 +1826,13 @@
     "corrupted_query": "SELECT Status FROM farm GROUP BY Status ORDER BY COUNT(*) DESC LIMIT 1",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -1176,7 +1841,13 @@
     "corrupted_query": "SELECT Status FROM city GROUP BY City_ID ORDER BY COUNT(*) DESC LIMIT 1",
     "corrupted_clause": "groupBy",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_groupBy"
+    "corruption_strategy": "corrupt_groupBy",
+    "reward": [
+      1.0,
+      0.18,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -1185,7 +1856,13 @@
     "corrupted_query": "SELECT Official_Name FROM city GROUP BY Status ORDER BY COUNT(*) DESC LIMIT 1",
     "corrupted_clause": "select",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      0.2,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -1194,7 +1871,13 @@
     "corrupted_query": "SELECT Status FROM city GROUP BY Status ORDER BY COUNT(*) ASC LIMIT 1",
     "corrupted_clause": "orderBy",
     "corrupted_position": 3,
-    "corruption_strategy": "corrupt_orderBy"
+    "corruption_strategy": "corrupt_orderBy",
+    "reward": [
+      1.0,
+      1.0,
+      1.0,
+      0.3
+    ]
   },
   {
     "db_id": "farm",
@@ -1203,7 +1886,12 @@
     "corrupted_query": "SELECT Official_Name FROM farm WHERE City_ID NOT IN ((SELECT Host_city_ID FROM farm_competition))",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -1212,7 +1900,12 @@
     "corrupted_query": "SELECT Official_Name FROM city WHERE City_ID IN ((SELECT Host_city_ID FROM farm_competition))",
     "corrupted_clause": "where",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_where"
+    "corruption_strategy": "corrupt_where",
+    "reward": [
+      1.0,
+      0.12,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -1221,7 +1914,12 @@
     "corrupted_query": "SELECT Status FROM city WHERE City_ID NOT IN ((SELECT Host_city_ID FROM farm_competition))",
     "corrupted_clause": "select",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      0.2
+    ]
   },
   {
     "db_id": "farm",
@@ -1230,7 +1928,12 @@
     "corrupted_query": "SELECT Official_Name FROM farm WHERE City_ID NOT IN ((SELECT Host_city_ID FROM farm_competition))",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -1239,7 +1942,12 @@
     "corrupted_query": "SELECT Official_Name FROM city WHERE City_ID IN ((SELECT Host_city_ID FROM farm_competition))",
     "corrupted_clause": "where",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_where"
+    "corruption_strategy": "corrupt_where",
+    "reward": [
+      1.0,
+      0.12,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -1248,7 +1956,12 @@
     "corrupted_query": "SELECT Status FROM city WHERE City_ID NOT IN ((SELECT Host_city_ID FROM farm_competition))",
     "corrupted_clause": "select",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      0.2
+    ]
   },
   {
     "db_id": "farm",
@@ -1257,7 +1970,12 @@
     "corrupted_query": "SELECT Status FROM farm WHERE Population > 1500.0 INTERSECT SELECT Status FROM city WHERE Population < 500.0",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -1266,7 +1984,12 @@
     "corrupted_query": "SELECT Status FROM city WHERE Population NOT > 1500.0 INTERSECT SELECT Status FROM city WHERE Population < 500.0",
     "corrupted_clause": "where",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_where"
+    "corruption_strategy": "corrupt_where",
+    "reward": [
+      1.0,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -1275,7 +1998,12 @@
     "corrupted_query": "SELECT Official_Name FROM city WHERE Population > 1500.0 INTERSECT SELECT Status FROM city WHERE Population < 500.0",
     "corrupted_clause": "select",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      0.2
+    ]
   },
   {
     "db_id": "farm",
@@ -1284,7 +2012,12 @@
     "corrupted_query": "SELECT Status FROM farm WHERE Population > 1500.0 INTERSECT SELECT Status FROM city WHERE Population < 500.0",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -1293,7 +2026,12 @@
     "corrupted_query": "SELECT Status FROM city WHERE Population NOT > 1500.0 INTERSECT SELECT Status FROM city WHERE Population < 500.0",
     "corrupted_clause": "where",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_where"
+    "corruption_strategy": "corrupt_where",
+    "reward": [
+      1.0,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -1302,7 +2040,12 @@
     "corrupted_query": "SELECT Official_Name FROM city WHERE Population > 1500.0 INTERSECT SELECT Status FROM city WHERE Population < 500.0",
     "corrupted_clause": "select",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      0.2
+    ]
   },
   {
     "db_id": "farm",
@@ -1311,7 +2054,12 @@
     "corrupted_query": "SELECT Official_Name FROM farm WHERE Population > 1500.0 OR Population < 500.0",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -1320,7 +2068,12 @@
     "corrupted_query": "SELECT Official_Name FROM city WHERE Population NOT > 1500.0 OR Population < 500.0",
     "corrupted_clause": "where",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_where"
+    "corruption_strategy": "corrupt_where",
+    "reward": [
+      1.0,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -1329,7 +2082,12 @@
     "corrupted_query": "SELECT Status FROM city WHERE Population > 1500.0 OR Population < 500.0",
     "corrupted_clause": "select",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      0.2
+    ]
   },
   {
     "db_id": "farm",
@@ -1338,7 +2096,12 @@
     "corrupted_query": "SELECT Official_Name FROM farm WHERE Population > 1500.0 OR Population < 500.0",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -1347,7 +2110,12 @@
     "corrupted_query": "SELECT Official_Name FROM city WHERE Population NOT > 1500.0 OR Population < 500.0",
     "corrupted_clause": "where",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_where"
+    "corruption_strategy": "corrupt_where",
+    "reward": [
+      1.0,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -1356,7 +2124,12 @@
     "corrupted_query": "SELECT Status FROM city WHERE Population > 1500.0 OR Population < 500.0",
     "corrupted_clause": "select",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      0.2
+    ]
   },
   {
     "db_id": "farm",
@@ -1365,7 +2138,12 @@
     "corrupted_query": "SELECT Census_Ranking FROM farm WHERE Status != 'Village'",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -1374,7 +2152,12 @@
     "corrupted_query": "SELECT Census_Ranking FROM city WHERE Status NOT != 'Village'",
     "corrupted_clause": "where",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_where"
+    "corruption_strategy": "corrupt_where",
+    "reward": [
+      1.0,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -1383,7 +2166,12 @@
     "corrupted_query": "SELECT Official_Name FROM city WHERE Status != 'Village'",
     "corrupted_clause": "select",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      0.2
+    ]
   },
   {
     "db_id": "farm",
@@ -1392,7 +2180,12 @@
     "corrupted_query": "SELECT Census_Ranking FROM farm WHERE Status != 'Village'",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -1401,7 +2194,12 @@
     "corrupted_query": "SELECT Census_Ranking FROM city WHERE Status NOT != 'Village'",
     "corrupted_clause": "where",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_where"
+    "corruption_strategy": "corrupt_where",
+    "reward": [
+      1.0,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "farm",
@@ -1410,7 +2208,12 @@
     "corrupted_query": "SELECT Official_Name FROM city WHERE Status != 'Village'",
     "corrupted_clause": "select",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      0.2
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1419,7 +2222,13 @@
     "corrupted_query": "SELECT Courses.course_id FROM Courses, Student_Course_Registrations WHERE Courses.course_id = Student_Course_Registrations.course_id GROUP BY Courses.course_id ORDER BY COUNT(*) DESC LIMIT 1",
     "corrupted_clause": "select",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      0.2,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1428,7 +2237,13 @@
     "corrupted_query": "SELECT Courses.course_name FROM Courses, Student_Course_Registrations WHERE Courses.course_id = Student_Course_Registrations.course_id GROUP BY Courses.course_id ORDER BY COUNT(*) ASC LIMIT 1",
     "corrupted_clause": "orderBy",
     "corrupted_position": 3,
-    "corruption_strategy": "corrupt_orderBy"
+    "corruption_strategy": "corrupt_orderBy",
+    "reward": [
+      1.0,
+      1.0,
+      1.0,
+      0.3
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1437,7 +2252,13 @@
     "corrupted_query": "SELECT Courses.course_id FROM Courses, Student_Course_Registrations WHERE Courses.course_id = Student_Course_Registrations.course_id GROUP BY Courses.course_id ORDER BY COUNT(*) DESC LIMIT 1",
     "corrupted_clause": "select",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      0.2,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1446,7 +2267,13 @@
     "corrupted_query": "SELECT Courses.course_name FROM Courses, Student_Course_Registrations WHERE Courses.course_id = Student_Course_Registrations.course_id GROUP BY Courses.course_id ORDER BY COUNT(*) ASC LIMIT 1",
     "corrupted_clause": "orderBy",
     "corrupted_position": 3,
-    "corruption_strategy": "corrupt_orderBy"
+    "corruption_strategy": "corrupt_orderBy",
+    "reward": [
+      1.0,
+      1.0,
+      1.0,
+      0.3
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1455,7 +2282,13 @@
     "corrupted_query": "SELECT student_id FROM Addresses GROUP BY student_id ORDER BY COUNT(*) ASC LIMIT 1",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1464,7 +2297,13 @@
     "corrupted_query": "SELECT student_id FROM Student_Course_Registrations GROUP BY course_id ORDER BY COUNT(*) ASC LIMIT 1",
     "corrupted_clause": "groupBy",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_groupBy"
+    "corruption_strategy": "corrupt_groupBy",
+    "reward": [
+      1.0,
+      0.18,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1473,7 +2312,13 @@
     "corrupted_query": "SELECT course_id FROM Student_Course_Registrations GROUP BY student_id ORDER BY COUNT(*) ASC LIMIT 1",
     "corrupted_clause": "select",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      0.2,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1482,7 +2327,13 @@
     "corrupted_query": "SELECT student_id FROM Student_Course_Registrations GROUP BY student_id ORDER BY COUNT(*) DESC LIMIT 1",
     "corrupted_clause": "orderBy",
     "corrupted_position": 3,
-    "corruption_strategy": "corrupt_orderBy"
+    "corruption_strategy": "corrupt_orderBy",
+    "reward": [
+      1.0,
+      1.0,
+      1.0,
+      0.3
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1491,7 +2342,13 @@
     "corrupted_query": "SELECT student_id FROM Addresses GROUP BY student_id ORDER BY COUNT(*) ASC LIMIT 1",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1500,7 +2357,13 @@
     "corrupted_query": "SELECT student_id FROM Student_Course_Registrations GROUP BY course_id ORDER BY COUNT(*) ASC LIMIT 1",
     "corrupted_clause": "groupBy",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_groupBy"
+    "corruption_strategy": "corrupt_groupBy",
+    "reward": [
+      1.0,
+      0.18,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1509,7 +2372,13 @@
     "corrupted_query": "SELECT course_id FROM Student_Course_Registrations GROUP BY student_id ORDER BY COUNT(*) ASC LIMIT 1",
     "corrupted_clause": "select",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      0.2,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1518,7 +2387,13 @@
     "corrupted_query": "SELECT student_id FROM Student_Course_Registrations GROUP BY student_id ORDER BY COUNT(*) DESC LIMIT 1",
     "corrupted_clause": "orderBy",
     "corrupted_position": 3,
-    "corruption_strategy": "corrupt_orderBy"
+    "corruption_strategy": "corrupt_orderBy",
+    "reward": [
+      1.0,
+      1.0,
+      1.0,
+      0.3
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1527,7 +2402,11 @@
     "corrupted_query": "SELECT first_name, last_name FROM Candidates",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.1,
+      0.15
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1536,7 +2415,11 @@
     "corrupted_query": "SELECT People.last_name FROM Candidates, People WHERE Candidates.candidate_id = People.person_id",
     "corrupted_clause": "select",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      0.25
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1545,7 +2428,11 @@
     "corrupted_query": "SELECT first_name, last_name FROM Candidates",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.1,
+      0.15
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1554,7 +2441,11 @@
     "corrupted_query": "SELECT People.last_name FROM Candidates, People WHERE Candidates.candidate_id = People.person_id",
     "corrupted_clause": "select",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      0.25
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1563,7 +2454,12 @@
     "corrupted_query": "SELECT student_id FROM Addresses WHERE student_id NOT IN ((SELECT student_id FROM Student_Course_Attendance))",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1572,7 +2468,12 @@
     "corrupted_query": "SELECT student_id FROM Students WHERE student_id IN ((SELECT student_id FROM Student_Course_Attendance))",
     "corrupted_clause": "where",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_where"
+    "corruption_strategy": "corrupt_where",
+    "reward": [
+      1.0,
+      0.12,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1581,7 +2482,12 @@
     "corrupted_query": "SELECT student_id FROM Addresses WHERE student_id NOT IN ((SELECT student_id FROM Student_Course_Attendance))",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1590,7 +2496,12 @@
     "corrupted_query": "SELECT student_id FROM Students WHERE student_id IN ((SELECT student_id FROM Student_Course_Attendance))",
     "corrupted_clause": "where",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_where"
+    "corruption_strategy": "corrupt_where",
+    "reward": [
+      1.0,
+      0.12,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1599,7 +2510,11 @@
     "corrupted_query": "SELECT student_id FROM Addresses",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1608,7 +2523,11 @@
     "corrupted_query": "SELECT course_id FROM Student_Course_Attendance",
     "corrupted_clause": "select",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      0.2
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1617,7 +2536,11 @@
     "corrupted_query": "SELECT student_id FROM Addresses",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1626,7 +2549,11 @@
     "corrupted_query": "SELECT course_id FROM Student_Course_Attendance",
     "corrupted_clause": "select",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      0.2
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1635,7 +2562,11 @@
     "corrupted_query": "SELECT student_id, course_name FROM Student_Course_Registrations",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.1,
+      0.15
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1644,7 +2575,11 @@
     "corrupted_query": "SELECT Courses.course_name FROM Student_Course_Registrations, Courses WHERE Student_Course_Registrations.course_id = Courses.course_id",
     "corrupted_clause": "select",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      0.25
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1653,7 +2588,12 @@
     "corrupted_query": "SELECT student_details FROM Student_Course_Registrations ORDER BY registration_date DESC LIMIT 1",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.1,
+      0.15,
+      0.15
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1662,7 +2602,12 @@
     "corrupted_query": "SELECT student_details FROM Student_Course_Registrations ORDER BY registration_date DESC LIMIT 1",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.1,
+      0.15,
+      0.15
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1671,7 +2616,12 @@
     "corrupted_query": "SELECT COUNT(*) FROM Courses WHERE course_name = 'English'",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.1,
+      0.15,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1680,7 +2630,12 @@
     "corrupted_query": "SELECT COUNT(*) FROM Courses, Student_Course_Attendance WHERE Courses.course_id = Student_Course_Attendance.course_id AND Courses.course_name NOT = 'English'",
     "corrupted_clause": "where",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_where"
+    "corruption_strategy": "corrupt_where",
+    "reward": [
+      1.0,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1689,7 +2644,12 @@
     "corrupted_query": "SELECT MAX(*) FROM Courses, Student_Course_Attendance WHERE Courses.course_id = Student_Course_Attendance.course_id AND Courses.course_name = 'English'",
     "corrupted_clause": "select",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1698,7 +2658,12 @@
     "corrupted_query": "SELECT COUNT(*) FROM Courses WHERE course_name = 'English'",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.1,
+      0.15,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1707,7 +2672,12 @@
     "corrupted_query": "SELECT COUNT(*) FROM Courses, Student_Course_Attendance WHERE Courses.course_id = Student_Course_Attendance.course_id AND Courses.course_name NOT = 'English'",
     "corrupted_clause": "where",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_where"
+    "corruption_strategy": "corrupt_where",
+    "reward": [
+      1.0,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1716,7 +2686,12 @@
     "corrupted_query": "SELECT MAX(*) FROM Courses, Student_Course_Attendance WHERE Courses.course_id = Student_Course_Attendance.course_id AND Courses.course_name = 'English'",
     "corrupted_clause": "select",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1725,7 +2700,12 @@
     "corrupted_query": "SELECT COUNT(*) FROM Courses WHERE student_id = 171.0",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.1,
+      0.15,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1734,7 +2714,12 @@
     "corrupted_query": "SELECT COUNT(*) FROM Courses, Student_Course_Attendance WHERE Courses.course_id = Student_Course_Attendance.course_id AND Student_Course_Attendance.student_id NOT = 171.0",
     "corrupted_clause": "where",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_where"
+    "corruption_strategy": "corrupt_where",
+    "reward": [
+      1.0,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1743,7 +2728,12 @@
     "corrupted_query": "SELECT MAX(*) FROM Courses, Student_Course_Attendance WHERE Courses.course_id = Student_Course_Attendance.course_id AND Student_Course_Attendance.student_id = 171.0",
     "corrupted_clause": "select",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1752,7 +2742,12 @@
     "corrupted_query": "SELECT COUNT(*) FROM Courses WHERE student_id = 171.0",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.1,
+      0.15,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1761,7 +2756,12 @@
     "corrupted_query": "SELECT COUNT(*) FROM Courses, Student_Course_Attendance WHERE Courses.course_id = Student_Course_Attendance.course_id AND Student_Course_Attendance.student_id NOT = 171.0",
     "corrupted_clause": "where",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_where"
+    "corruption_strategy": "corrupt_where",
+    "reward": [
+      1.0,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1770,7 +2770,12 @@
     "corrupted_query": "SELECT MAX(*) FROM Courses, Student_Course_Attendance WHERE Courses.course_id = Student_Course_Attendance.course_id AND Student_Course_Attendance.student_id = 171.0",
     "corrupted_clause": "select",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1779,7 +2784,12 @@
     "corrupted_query": "SELECT candidate_id FROM People WHERE email_address = 'stanley.monahan@example.org'",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.1,
+      0.15,
+      0.15
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1788,7 +2798,12 @@
     "corrupted_query": "SELECT Candidates.candidate_id FROM People, Candidates WHERE People.person_id = Candidates.candidate_id AND People.email_address NOT = 'stanley.monahan@example.org'",
     "corrupted_clause": "where",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_where"
+    "corruption_strategy": "corrupt_where",
+    "reward": [
+      1.0,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1797,7 +2812,12 @@
     "corrupted_query": "SELECT candidate_id FROM People WHERE email_address = 'stanley.monahan@example.org'",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.1,
+      0.15,
+      0.15
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1806,7 +2826,12 @@
     "corrupted_query": "SELECT Candidates.candidate_id FROM People, Candidates WHERE People.person_id = Candidates.candidate_id AND People.email_address NOT = 'stanley.monahan@example.org'",
     "corrupted_clause": "where",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_where"
+    "corruption_strategy": "corrupt_where",
+    "reward": [
+      1.0,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1815,7 +2840,12 @@
     "corrupted_query": "SELECT candidate_id FROM Addresses ORDER BY assessment_date DESC LIMIT 1",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1824,7 +2854,12 @@
     "corrupted_query": "SELECT candidate_id FROM Candidate_Assessments ORDER BY assessment_date ASC LIMIT 1",
     "corrupted_clause": "orderBy",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_orderBy"
+    "corruption_strategy": "corrupt_orderBy",
+    "reward": [
+      1.0,
+      1.0,
+      0.3
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1833,7 +2868,12 @@
     "corrupted_query": "SELECT candidate_id FROM Addresses ORDER BY assessment_date DESC LIMIT 1",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1842,7 +2882,12 @@
     "corrupted_query": "SELECT candidate_id FROM Candidate_Assessments ORDER BY assessment_date ASC LIMIT 1",
     "corrupted_clause": "orderBy",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_orderBy"
+    "corruption_strategy": "corrupt_orderBy",
+    "reward": [
+      1.0,
+      1.0,
+      0.3
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1851,7 +2896,13 @@
     "corrupted_query": "SELECT student_details FROM Students GROUP BY student_id ORDER BY COUNT(*) DESC LIMIT 1",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.1,
+      0.15,
+      0.15,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1860,7 +2911,13 @@
     "corrupted_query": "SELECT Students.student_details FROM Students, Student_Course_Registrations WHERE Students.student_id = Student_Course_Registrations.student_id GROUP BY Students.student_details ORDER BY COUNT(*) DESC LIMIT 1",
     "corrupted_clause": "groupBy",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_groupBy"
+    "corruption_strategy": "corrupt_groupBy",
+    "reward": [
+      1.0,
+      0.18,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1869,7 +2926,13 @@
     "corrupted_query": "SELECT Students.student_details FROM Students, Student_Course_Registrations WHERE Students.student_id = Student_Course_Registrations.student_id GROUP BY Students.student_id ORDER BY COUNT(*) ASC LIMIT 1",
     "corrupted_clause": "orderBy",
     "corrupted_position": 3,
-    "corruption_strategy": "corrupt_orderBy"
+    "corruption_strategy": "corrupt_orderBy",
+    "reward": [
+      1.0,
+      1.0,
+      1.0,
+      0.3
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1878,7 +2941,13 @@
     "corrupted_query": "SELECT student_details FROM Students GROUP BY student_id ORDER BY COUNT(*) DESC LIMIT 1",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.1,
+      0.15,
+      0.15,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1887,7 +2956,13 @@
     "corrupted_query": "SELECT Students.student_details FROM Students, Student_Course_Registrations WHERE Students.student_id = Student_Course_Registrations.student_id GROUP BY Students.student_details ORDER BY COUNT(*) DESC LIMIT 1",
     "corrupted_clause": "groupBy",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_groupBy"
+    "corruption_strategy": "corrupt_groupBy",
+    "reward": [
+      1.0,
+      0.18,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1896,7 +2971,13 @@
     "corrupted_query": "SELECT Students.student_details FROM Students, Student_Course_Registrations WHERE Students.student_id = Student_Course_Registrations.student_id GROUP BY Students.student_id ORDER BY COUNT(*) ASC LIMIT 1",
     "corrupted_clause": "orderBy",
     "corrupted_position": 3,
-    "corruption_strategy": "corrupt_orderBy"
+    "corruption_strategy": "corrupt_orderBy",
+    "reward": [
+      1.0,
+      1.0,
+      1.0,
+      0.3
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1905,7 +2986,12 @@
     "corrupted_query": "SELECT student_id, COUNT(*) FROM Students GROUP BY student_id",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.1,
+      0.15,
+      0.15
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1914,7 +3000,12 @@
     "corrupted_query": "SELECT Students.student_id, MAX(*) FROM Students, Student_Course_Registrations WHERE Students.student_id = Student_Course_Registrations.student_id GROUP BY Students.student_id",
     "corrupted_clause": "select",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1923,7 +3014,12 @@
     "corrupted_query": "SELECT student_id, COUNT(*) FROM Students GROUP BY student_id",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.1,
+      0.15,
+      0.15
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1932,7 +3028,12 @@
     "corrupted_query": "SELECT Students.student_id, MAX(*) FROM Students, Student_Course_Registrations WHERE Students.student_id = Student_Course_Registrations.student_id GROUP BY Students.student_id",
     "corrupted_clause": "select",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1941,7 +3042,12 @@
     "corrupted_query": "SELECT course_name, COUNT(*) FROM Students, Student_Course_Registrations WHERE Students.student_id = Student_Course_Registrations.student_id GROUP BY Student_Course_Registrations.course_id",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.1,
+      0.0,
+      0.15
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1950,7 +3056,12 @@
     "corrupted_query": "SELECT Courses.course_name, COUNT(*) FROM Students, Student_Course_Registrations, Courses WHERE Students.student_id = Student_Course_Registrations.student_id AND Student_Course_Registrations.course_id = Courses.course_id GROUP BY Student_Course_Registrations.student_id",
     "corrupted_clause": "groupBy",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_groupBy"
+    "corruption_strategy": "corrupt_groupBy",
+    "reward": [
+      1.0,
+      0.18,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1959,7 +3070,12 @@
     "corrupted_query": "SELECT Courses.course_name, MAX(*) FROM Students, Student_Course_Registrations, Courses WHERE Students.student_id = Student_Course_Registrations.student_id AND Student_Course_Registrations.course_id = Courses.course_id GROUP BY Student_Course_Registrations.course_id",
     "corrupted_clause": "select",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1968,7 +3084,12 @@
     "corrupted_query": "SELECT course_name, COUNT(*) FROM Students, Student_Course_Registrations WHERE Students.student_id = Student_Course_Registrations.student_id GROUP BY Student_Course_Registrations.course_id",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.1,
+      0.0,
+      0.15
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1977,7 +3098,12 @@
     "corrupted_query": "SELECT Courses.course_name, COUNT(*) FROM Students, Student_Course_Registrations, Courses WHERE Students.student_id = Student_Course_Registrations.student_id AND Student_Course_Registrations.course_id = Courses.course_id GROUP BY Student_Course_Registrations.student_id",
     "corrupted_clause": "groupBy",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_groupBy"
+    "corruption_strategy": "corrupt_groupBy",
+    "reward": [
+      1.0,
+      0.18,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1986,7 +3112,12 @@
     "corrupted_query": "SELECT Courses.course_name, MAX(*) FROM Students, Student_Course_Registrations, Courses WHERE Students.student_id = Student_Course_Registrations.student_id AND Student_Course_Registrations.course_id = Courses.course_id GROUP BY Student_Course_Registrations.course_id",
     "corrupted_clause": "select",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -1995,7 +3126,12 @@
     "corrupted_query": "SELECT candidate_id FROM Addresses WHERE asessment_outcome_code = 'Pass'",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -2004,7 +3140,12 @@
     "corrupted_query": "SELECT candidate_id FROM Candidate_Assessments WHERE asessment_outcome_code NOT = 'Pass'",
     "corrupted_clause": "where",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_where"
+    "corruption_strategy": "corrupt_where",
+    "reward": [
+      1.0,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -2013,7 +3154,12 @@
     "corrupted_query": "SELECT candidate_id FROM Addresses WHERE asessment_outcome_code = 'Pass'",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -2022,7 +3168,12 @@
     "corrupted_query": "SELECT candidate_id FROM Candidate_Assessments WHERE asessment_outcome_code NOT = 'Pass'",
     "corrupted_clause": "where",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_where"
+    "corruption_strategy": "corrupt_where",
+    "reward": [
+      1.0,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -2031,7 +3182,12 @@
     "corrupted_query": "SELECT cell_mobile_number FROM Candidates, Candidate_Assessments WHERE Candidates.candidate_id = Candidate_Assessments.candidate_id AND Candidate_Assessments.asessment_outcome_code = 'Fail'",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.1,
+      0.15,
+      0.15
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -2040,7 +3196,12 @@
     "corrupted_query": "SELECT People.cell_mobile_number FROM Candidates, Candidate_Assessments, People WHERE Candidates.candidate_id = Candidate_Assessments.candidate_id AND Candidates.candidate_id = People.person_id AND Candidate_Assessments.asessment_outcome_code NOT = 'Fail'",
     "corrupted_clause": "where",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_where"
+    "corruption_strategy": "corrupt_where",
+    "reward": [
+      1.0,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -2049,7 +3210,12 @@
     "corrupted_query": "SELECT People.first_name FROM Candidates, Candidate_Assessments, People WHERE Candidates.candidate_id = Candidate_Assessments.candidate_id AND Candidates.candidate_id = People.person_id AND Candidate_Assessments.asessment_outcome_code = 'Fail'",
     "corrupted_clause": "select",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      0.2
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -2058,7 +3224,12 @@
     "corrupted_query": "SELECT cell_mobile_number FROM Candidates, Candidate_Assessments WHERE Candidates.candidate_id = Candidate_Assessments.candidate_id AND Candidate_Assessments.asessment_outcome_code = 'Fail'",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.1,
+      0.15,
+      0.15
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -2067,7 +3238,12 @@
     "corrupted_query": "SELECT People.cell_mobile_number FROM Candidates, Candidate_Assessments, People WHERE Candidates.candidate_id = Candidate_Assessments.candidate_id AND Candidates.candidate_id = People.person_id AND Candidate_Assessments.asessment_outcome_code NOT = 'Fail'",
     "corrupted_clause": "where",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_where"
+    "corruption_strategy": "corrupt_where",
+    "reward": [
+      1.0,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -2076,7 +3252,12 @@
     "corrupted_query": "SELECT People.first_name FROM Candidates, Candidate_Assessments, People WHERE Candidates.candidate_id = Candidate_Assessments.candidate_id AND Candidates.candidate_id = People.person_id AND Candidate_Assessments.asessment_outcome_code = 'Fail'",
     "corrupted_clause": "select",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      0.2
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -2085,7 +3266,12 @@
     "corrupted_query": "SELECT student_id FROM Addresses WHERE course_id = 301.0",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -2094,7 +3280,12 @@
     "corrupted_query": "SELECT student_id FROM Student_Course_Attendance WHERE course_id NOT = 301.0",
     "corrupted_clause": "where",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_where"
+    "corruption_strategy": "corrupt_where",
+    "reward": [
+      1.0,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -2103,7 +3294,12 @@
     "corrupted_query": "SELECT course_id FROM Student_Course_Attendance WHERE course_id = 301.0",
     "corrupted_clause": "select",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      0.2
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -2112,7 +3308,12 @@
     "corrupted_query": "SELECT student_id FROM Addresses WHERE course_id = 301.0",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -2121,7 +3322,12 @@
     "corrupted_query": "SELECT student_id FROM Student_Course_Attendance WHERE course_id NOT = 301.0",
     "corrupted_clause": "where",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_where"
+    "corruption_strategy": "corrupt_where",
+    "reward": [
+      1.0,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -2130,7 +3336,12 @@
     "corrupted_query": "SELECT course_id FROM Student_Course_Attendance WHERE course_id = 301.0",
     "corrupted_clause": "select",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      0.2
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -2139,7 +3350,13 @@
     "corrupted_query": "SELECT student_id FROM Addresses WHERE course_id = 301.0 ORDER BY date_of_attendance DESC LIMIT 1",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -2148,7 +3365,13 @@
     "corrupted_query": "SELECT student_id FROM Student_Course_Attendance WHERE course_id NOT = 301.0 ORDER BY date_of_attendance DESC LIMIT 1",
     "corrupted_clause": "where",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_where"
+    "corruption_strategy": "corrupt_where",
+    "reward": [
+      1.0,
+      0.0,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -2157,7 +3380,13 @@
     "corrupted_query": "SELECT course_id FROM Student_Course_Attendance WHERE course_id = 301.0 ORDER BY date_of_attendance DESC LIMIT 1",
     "corrupted_clause": "select",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      0.2,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -2166,7 +3395,13 @@
     "corrupted_query": "SELECT student_id FROM Student_Course_Attendance WHERE course_id = 301.0 ORDER BY date_of_attendance ASC LIMIT 1",
     "corrupted_clause": "orderBy",
     "corrupted_position": 3,
-    "corruption_strategy": "corrupt_orderBy"
+    "corruption_strategy": "corrupt_orderBy",
+    "reward": [
+      1.0,
+      1.0,
+      1.0,
+      0.3
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -2175,7 +3410,13 @@
     "corrupted_query": "SELECT student_id FROM Addresses WHERE course_id = 301.0 ORDER BY date_of_attendance DESC LIMIT 1",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -2184,7 +3425,13 @@
     "corrupted_query": "SELECT student_id FROM Student_Course_Attendance WHERE course_id NOT = 301.0 ORDER BY date_of_attendance DESC LIMIT 1",
     "corrupted_clause": "where",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_where"
+    "corruption_strategy": "corrupt_where",
+    "reward": [
+      1.0,
+      0.0,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -2193,7 +3440,13 @@
     "corrupted_query": "SELECT course_id FROM Student_Course_Attendance WHERE course_id = 301.0 ORDER BY date_of_attendance DESC LIMIT 1",
     "corrupted_clause": "select",
     "corrupted_position": 2,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      1.0,
+      0.2,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -2202,7 +3455,13 @@
     "corrupted_query": "SELECT student_id FROM Student_Course_Attendance WHERE course_id = 301.0 ORDER BY date_of_attendance ASC LIMIT 1",
     "corrupted_clause": "orderBy",
     "corrupted_position": 3,
-    "corruption_strategy": "corrupt_orderBy"
+    "corruption_strategy": "corrupt_orderBy",
+    "reward": [
+      1.0,
+      1.0,
+      1.0,
+      0.3
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -2211,7 +3470,11 @@
     "corrupted_query": "SELECT DISTINCT city FROM Addresses",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.1,
+      0.15
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -2220,7 +3483,11 @@
     "corrupted_query": "SELECT DISTINCT Addresses.line_1 FROM Addresses, People_Addresses WHERE Addresses.address_id = People_Addresses.address_id",
     "corrupted_clause": "select",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      0.2
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -2229,7 +3496,11 @@
     "corrupted_query": "SELECT DISTINCT city FROM Addresses",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.1,
+      0.15
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -2238,7 +3509,11 @@
     "corrupted_query": "SELECT DISTINCT Addresses.line_1 FROM Addresses, People_Addresses WHERE Addresses.address_id = People_Addresses.address_id",
     "corrupted_clause": "select",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      0.2
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -2247,7 +3522,11 @@
     "corrupted_query": "SELECT DISTINCT Addresses.line_1 FROM Addresses, People_Addresses, Students WHERE Addresses.address_id = People_Addresses.address_id AND People_Addresses.person_id = Students.student_id",
     "corrupted_clause": "select",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      0.2
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -2256,7 +3535,11 @@
     "corrupted_query": "SELECT DISTINCT Addresses.line_1 FROM Addresses, People_Addresses, Students WHERE Addresses.address_id = People_Addresses.address_id AND People_Addresses.person_id = Students.student_id",
     "corrupted_clause": "select",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      0.2
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -2265,7 +3548,12 @@
     "corrupted_query": "SELECT course_name FROM Addresses ORDER BY course_name ASC",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -2274,7 +3562,12 @@
     "corrupted_query": "SELECT course_id FROM Courses ORDER BY course_name ASC",
     "corrupted_clause": "select",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      0.2,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -2283,7 +3576,12 @@
     "corrupted_query": "SELECT course_name FROM Addresses ORDER BY course_name ASC",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -2292,7 +3590,12 @@
     "corrupted_query": "SELECT course_id FROM Courses ORDER BY course_name ASC",
     "corrupted_clause": "select",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      0.2,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -2301,7 +3604,12 @@
     "corrupted_query": "SELECT first_name FROM Addresses ORDER BY first_name ASC",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -2310,7 +3618,12 @@
     "corrupted_query": "SELECT middle_name FROM People ORDER BY first_name ASC",
     "corrupted_clause": "select",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      0.2,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -2319,7 +3632,12 @@
     "corrupted_query": "SELECT first_name FROM Addresses ORDER BY first_name ASC",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -2328,7 +3646,12 @@
     "corrupted_query": "SELECT middle_name FROM People ORDER BY first_name ASC",
     "corrupted_clause": "select",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      0.2,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -2337,7 +3660,11 @@
     "corrupted_query": "SELECT student_id FROM Addresses UNION SELECT student_id FROM Student_Course_Attendance",
     "corrupted_clause": "from",
     "corrupted_position": 0,
-    "corruption_strategy": "corrupt_from"
+    "corruption_strategy": "corrupt_from",
+    "reward": [
+      0.15,
+      0.0
+    ]
   },
   {
     "db_id": "student_assessment",
@@ -2346,6 +3673,10 @@
     "corrupted_query": "SELECT course_id FROM Student_Course_Registrations UNION SELECT student_id FROM Student_Course_Attendance",
     "corrupted_clause": "select",
     "corrupted_position": 1,
-    "corruption_strategy": "corrupt_select"
+    "corruption_strategy": "corrupt_select",
+    "reward": [
+      1.0,
+      0.2
+    ]
   }
 ]
