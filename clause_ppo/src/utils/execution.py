@@ -1,7 +1,7 @@
 """
 SQLite execution oracle for CLAUSE-PPO.
 
-execute_query      — run a SQL string against a .sqlite file; treat empty results as failure.
+execute_query      — run a SQL string against a .sqlite file; optionally treat empty results as failure.
 queries_produce_same_result — compare two queries' result sets (order-insensitive).
 
 Timeout is implemented with a daemon thread so it works on any OS (signal.alarm
@@ -43,15 +43,17 @@ def _run_with_timeout(fn, timeout_secs: float):
 
 
 def execute_query(query: str, db_path: str,
-                  timeout_secs: float = 5.0) -> tuple[bool, Optional[list]]:
+                  timeout_secs: float = 5.0,
+                  allow_empty: bool = False) -> tuple[bool, Optional[list]]:
     """
     Execute *query* against the SQLite database at *db_path*.
 
     Returns:
-        (True,  list[list])  — query ran and returned >=1 row.
+        (True,  list[list])  — query ran successfully (rows may be empty if
+                               *allow_empty* is True).
         (False, None)        — query raised an exception or timed out.
-        (False, [])          — query ran but returned 0 rows (treated as failure
-                               because empty results provide no training signal).
+        (False, [])          — query ran but returned 0 rows when *allow_empty*
+                               is False (empty results provide no training signal).
     """
     def _run():
         conn = sqlite3.connect(db_path)
@@ -71,7 +73,7 @@ def execute_query(query: str, db_path: str,
         return False, None
 
     if not rows:
-        return False, []
+        return (True, []) if allow_empty else (False, [])
     return True, rows
 
 
@@ -99,3 +101,32 @@ def queries_produce_same_result(q1: str, q2: str, db_path: str,
         return False
 
     return sorted(_normalize_row(r) for r in r1) == sorted(_normalize_row(r) for r in r2)
+
+
+def result_set_similarity(rows_a: list, rows_b: list) -> float:
+    """
+    Multiset Jaccard similarity between two result sets (0..1).
+    Uses normalized rows for numeric comparison.
+    """
+    if not rows_a and not rows_b:
+        return 1.0
+    if not rows_a or not rows_b:
+        return 0.0
+
+    from collections import Counter
+
+    ca = Counter(_normalize_row(r) for r in rows_a)
+    cb = Counter(_normalize_row(r) for r in rows_b)
+    intersection = sum((ca & cb).values())
+    union = sum((ca | cb).values())
+    return intersection / union if union else 1.0
+
+
+def query_result_similarity(q_gold: str, q_corr: str, db_path: str,
+                            timeout_secs: float = 5.0) -> float:
+    """Jaccard similarity between gold and corrupted query result sets."""
+    ok_g, rg = execute_query(q_gold, db_path, timeout_secs, allow_empty=True)
+    ok_c, rc = execute_query(q_corr, db_path, timeout_secs, allow_empty=True)
+    if not ok_g or not ok_c:
+        return 0.0
+    return result_set_similarity(rg, rc)
