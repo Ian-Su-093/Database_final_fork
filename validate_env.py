@@ -68,6 +68,76 @@ def _check_reward(reward: float, done: bool,
     return True, ""
 
 
+def run_episode(env: NL2SQLEnv, prm: MockClausePRM, record: dict) -> dict:
+    """
+    Run one episode against a corruption record.
+
+    Returns:
+        {
+            'passed':   bool,
+            'failures': list[str],   # empty when passed
+            'db_id':    str,
+            'question': str,
+        }
+    """
+    failures = []
+    sample = {
+        'question': record['question'],
+        'db_id':    record['db_id'],
+        'query':    record['original_query'],
+    }
+
+    # Check 1: reset
+    try:
+        state = env.reset(sample)
+        ok, msg = _check_reset(state)
+        if not ok:
+            failures.append(f"[reset] {msg}")
+    except Exception as exc:
+        failures.append(f"[reset] raised {type(exc).__name__}: {exc}")
+        # Cannot continue without a valid reset
+        return {'passed': False, 'failures': failures,
+                'db_id': record['db_id'], 'question': record['question']}
+
+    # Check 2: faulty clause identification
+    try:
+        scores    = prm.score_clauses(known_faulty=record['corrupted_clause'])
+        predicted = env.get_faulty_clause(scores)
+        ok, msg   = _check_faulty_clause(predicted, record['corrupted_clause'])
+        if not ok:
+            failures.append(f"[faulty_clause] {msg}")
+    except Exception as exc:
+        failures.append(f"[faulty_clause] raised {type(exc).__name__}: {exc}")
+
+    # Check 3: positive reward — original SQL should match gold
+    # env._current is still set from the reset above
+    try:
+        reward, done = env.step(record['original_query'])
+        ok, msg = _check_reward(reward, done, +1.0, 'original')
+        if not ok:
+            failures.append(f"[positive_reward] {msg}")
+    except Exception as exc:
+        failures.append(f"[positive_reward] raised {type(exc).__name__}: {exc}")
+
+    # Check 4: negative reward — corrupted SQL should differ from gold
+    # Reset with the same sample so gold is available; then step with corrupted SQL.
+    try:
+        env.reset(sample)
+        reward, done = env.step(record['corrupted_query'])
+        ok, msg = _check_reward(reward, done, -1.0, 'corrupted')
+        if not ok:
+            failures.append(f"[negative_reward] {msg}")
+    except Exception as exc:
+        failures.append(f"[negative_reward] raised {type(exc).__name__}: {exc}")
+
+    return {
+        'passed':   len(failures) == 0,
+        'failures': failures,
+        'db_id':    record['db_id'],
+        'question': record['question'],
+    }
+
+
 def _load_data():
     """Validate paths, load tables.json and corruption_dataset.json. Exits on error."""
     errors = []
