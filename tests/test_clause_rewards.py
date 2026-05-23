@@ -1,4 +1,4 @@
-"""Tests for clause_ppo/src/data/clause_rewards.py"""
+"""Tests for clause_ppo/scripts/clause_rewards.py"""
 
 import json
 import os
@@ -6,9 +6,11 @@ import sys
 
 import pytest
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'clause_ppo', 'src'))
+_CLAUSE_PPO = os.path.join(os.path.dirname(__file__), '..', 'clause_ppo')
+sys.path.insert(0, os.path.join(_CLAUSE_PPO, 'src'))
+sys.path.insert(0, os.path.join(_CLAUSE_PPO, 'scripts'))
 
-from data.clause_rewards import (
+from clause_rewards import (
     build_orig_clause_texts,
     compute_clause_rewards,
     extract_clause_texts,

@@ -5,7 +5,7 @@ add_clause_rewards.py
 Compute per-clause reward vectors and write them into corruption_dataset.json.
 
 Usage:
-  python scripts/add_clause_rewards.py \\
+  python src/data/add_clause_rewards.py \\
       --processed_dir data/processed \\
       --spider_dir    data/spider \\
       --limit         5
@@ -18,9 +18,11 @@ import json
 import os
 import sys
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+_ROOT = os.path.join(os.path.dirname(__file__), '..', '..')
+sys.path.insert(0, os.path.join(_ROOT, 'src'))
+sys.path.insert(0, os.path.join(_ROOT, 'scripts'))
 
-from data.clause_rewards import (
+from clause_rewards import (
     build_orig_clause_texts,
     compute_clause_rewards,
     validate_rewards,
