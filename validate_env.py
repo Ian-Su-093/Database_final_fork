@@ -43,6 +43,31 @@ class MockClausePRM:
         return {c: (0.1 if c == known_faulty else 0.9) for c in CLAUSE_ORDER}
 
 
+def _check_reset(state: dict) -> tuple[bool, str]:
+    required = {'question', 'schema', 'db_id'}
+    missing = required - set(state.keys())
+    if missing:
+        return False, f"state missing keys: {missing}"
+    if not state['schema'].strip():
+        return False, "schema is empty"
+    return True, ""
+
+
+def _check_faulty_clause(predicted: str, expected: str) -> tuple[bool, str]:
+    if predicted != expected:
+        return False, f"predicted {predicted!r}, expected {expected!r}"
+    return True, ""
+
+
+def _check_reward(reward: float, done: bool,
+                  expected: float, label: str) -> tuple[bool, str]:
+    if done is not True:
+        return False, f"{label}: done={done!r}, expected True"
+    if reward != expected:
+        return False, f"{label}: reward={reward}, expected {expected}"
+    return True, ""
+
+
 def _load_data():
     """Validate paths, load tables.json and corruption_dataset.json. Exits on error."""
     errors = []
