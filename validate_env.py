@@ -138,6 +138,68 @@ def run_episode(env: NL2SQLEnv, prm: MockClausePRM, record: dict) -> dict:
     }
 
 
+def main() -> None:
+    tables, records = _load_data()
+
+    env = NL2SQLEnv(spider_dir=SPIDER_DIR, tables=tables)
+    prm = MockClausePRM()
+
+    print("Validating NL2SQL environment...")
+    print(f"Spider:     {SPIDER_DIR}")
+    print(f"Corruption: {CORRUPTION_FILE}")
+    print(f"Episodes:   {len(records)}")
+    print()
+    print("Running episodes: ", end='', flush=True)
+
+    results: list[dict] = []
+    failed_episodes: list[tuple[int, dict]] = []
+
+    for i, record in enumerate(records):
+        result = run_episode(env, prm, record)
+        results.append(result)
+        if result['passed']:
+            print('.', end='', flush=True)
+        else:
+            print('F', end='', flush=True)
+            failed_episodes.append((i + 1, result))
+
+    print('\n')
+
+    # Print inline failure details
+    for ep_num, result in failed_episodes:
+        print(f"  [FAIL #{ep_num}] db_id={result['db_id']}")
+        print(f"               question: {result['question']!r}")
+        for msg in result['failures']:
+            print(f"               {msg}")
+    if failed_episodes:
+        print()
+
+    # Per-check summary
+    total = len(results)
+    checks = {
+        'Reset valid':       lambda r: not any('[reset]'           in f for f in r['failures']),
+        'Faulty clause ID':  lambda r: not any('[faulty_clause]'   in f for f in r['failures']),
+        'Positive reward':   lambda r: not any('[positive_reward]' in f for f in r['failures']),
+        'Negative reward':   lambda r: not any('[negative_reward]' in f for f in r['failures']),
+    }
+
+    print("Results")
+    print("-------")
+    for label, fn in checks.items():
+        passed = sum(1 for r in results if fn(r))
+        print(f"  {label:<20} {passed}/{total}")
+
+    print()
+    all_passed = all(r['passed'] for r in results)
+    if all_passed:
+        print("PASSED — all episodes passed all checks.")
+        sys.exit(0)
+    else:
+        n_failed = sum(1 for r in results if not r['passed'])
+        print(f"FAILED — {n_failed} episode(s) did not pass all checks.")
+        sys.exit(1)
+
+
 def _load_data():
     """Validate paths, load tables.json and corruption_dataset.json. Exits on error."""
     errors = []
@@ -160,5 +222,4 @@ def _load_data():
 
 
 if __name__ == '__main__':
-    tables, records = _load_data()
-    print(f"Loaded {len(records)} records. Spider OK.")
+    main()
