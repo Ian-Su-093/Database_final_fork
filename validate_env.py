@@ -31,6 +31,18 @@ from env.env import NL2SQLEnv  # noqa: E402
 CLAUSE_ORDER = ['from', 'where', 'groupBy', 'having', 'select', 'orderBy']
 
 
+class MockClausePRM:
+    """
+    Simulates ClausePRM without loading the real model.
+    Returns 0.1 for the known faulty clause and 0.9 for all others.
+    This guarantees get_faulty_clause() returns the right clause when
+    scores are passed to NL2SQLEnv.get_faulty_clause().
+    """
+
+    def score_clauses(self, known_faulty: str) -> dict[str, float]:
+        return {c: (0.1 if c == known_faulty else 0.9) for c in CLAUSE_ORDER}
+
+
 def _load_data():
     """Validate paths, load tables.json and corruption_dataset.json. Exits on error."""
     errors = []
