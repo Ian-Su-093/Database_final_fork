@@ -361,7 +361,7 @@ def train_ppo(config: dict, spider_dir: str, prm_ckpt: str) -> list[dict]:
         # Step 8: PPO update
         ppo_trainer.step(
             [query_tensor],
-            [response_tensors[0]],
+            [generated_ids],
             [torch.tensor(reward, dtype=torch.float32)],
         )
 
