@@ -98,3 +98,61 @@ def compute_reward(terminal: float, prm_score: float, alpha: float) -> float:
         terminal + alpha * prm_score
     """
     return terminal + alpha * prm_score
+
+
+# ── Episode helper ────────────────────────────────────────────────────────────
+
+import random
+
+from data.corruption import _CORRUPT_FNS          # noqa: E402
+from utils.sql_utils import reconstruct_sql        # noqa: E402
+
+
+def get_corrupted_sample(
+    sample: dict,
+    tables_dict: dict,
+) -> tuple[str, str] | None:
+    """
+    Apply the corruption engine to produce a wrong SQL for one Spider sample.
+
+    Calls the per-clause corrupt_* functions directly (not generate_corruptions)
+    to avoid the hardcoded spider path in the orchestration function.
+    Execution verification is skipped here — env.step() handles that at training time.
+
+    Args:
+        sample:      One Spider train entry with 'sql', 'db_id' fields.
+        tables_dict: tables.json loaded as {db_id: tables_entry}.
+
+    Returns:
+        (wrong_sql_str, faulty_clause_key) or None if no corruption is possible.
+    """
+    sql_dict = sample.get('sql')
+    if not sql_dict:
+        return None
+
+    tables = tables_dict.get(sample['db_id'])
+    if tables is None:
+        return None
+
+    # Get clause names present in this SQL (execution order)
+    clauses = split_into_clauses(sql_dict)
+    clause_names = [name for name, _ in clauses]
+
+    # Shuffle to avoid always corrupting the same clause
+    shuffled = clause_names[:]
+    random.shuffle(shuffled)
+
+    for clause_name in shuffled:
+        corrupt_fn = _CORRUPT_FNS.get(clause_name)
+        if corrupt_fn is None:
+            continue
+        corrupted_dict = corrupt_fn(sql_dict, tables)
+        if corrupted_dict is None:
+            continue
+        try:
+            wrong_sql = reconstruct_sql(corrupted_dict, tables)
+            return wrong_sql, clause_name
+        except Exception:
+            continue
+
+    return None
