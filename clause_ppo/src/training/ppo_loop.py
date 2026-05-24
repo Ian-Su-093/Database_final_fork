@@ -156,3 +156,245 @@ def get_corrupted_sample(
             continue
 
     return None
+
+
+# ── Main training loop ────────────────────────────────────────────────────────
+
+def train_ppo(config: dict, spider_dir: str, prm_ckpt: str) -> list[dict]:
+    """
+    Full PPO training loop for clause-level NL2SQL repair.
+
+    Args:
+        config:     Parsed ppo_config.yaml as a nested dict.
+        spider_dir: Path to the Spider dataset root (contains tables.json,
+                    train_spider.json, dev.json, database/).
+        prm_ckpt:   Path to the saved ClausePRM checkpoint directory.
+
+    Returns:
+        List of log entry dicts written during training.
+    """
+    import json
+    import torch
+    from trl import PPOTrainer, PPOConfig, AutoModelForCausalLMWithValueHead
+    from peft import LoraConfig, get_peft_model, TaskType, create_reference_model
+    from transformers import AutoTokenizer, BitsAndBytesConfig
+
+    # Make src/ (env, eval) importable
+    _REPO_ROOT = os.path.normpath(os.path.join(_CLAUSE_PPO_SRC, '..', '..'))
+    _ENV_SRC   = os.path.join(_REPO_ROOT, 'src')
+    if _ENV_SRC not in sys.path:
+        sys.path.insert(0, _ENV_SRC)
+    from env.env import NL2SQLEnv
+
+    from models.prm import ClausePRM
+
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    print(f"Device: {device}")
+
+    mcfg  = config['model']
+    pcfg  = config['ppo']
+    tcfg  = config['training']
+    paths = config['paths']
+
+    os.makedirs(paths['output_dir'], exist_ok=True)
+    log_dir = os.path.dirname(paths['log_file'])
+    if log_dir:
+        os.makedirs(log_dir, exist_ok=True)
+
+    # ── Tokenizer ─────────────────────────────────────────────────────────────
+    print("Loading tokenizer...")
+    tokenizer = AutoTokenizer.from_pretrained(mcfg['actor_name'], use_fast=True)
+    if tokenizer.pad_token is None:
+        tokenizer.pad_token = tokenizer.eos_token
+
+    # ── Actor with value head ─────────────────────────────────────────────────
+    print("Loading actor model...")
+    use_4bit = mcfg.get('quantization', '4bit') == '4bit'
+    bnb_config = None
+    if use_4bit:
+        bnb_config = BitsAndBytesConfig(
+            load_in_4bit=True,
+            bnb_4bit_quant_type='nf4',
+            bnb_4bit_compute_dtype=torch.bfloat16,
+            bnb_4bit_use_double_quant=True,
+        )
+
+    actor = AutoModelForCausalLMWithValueHead.from_pretrained(
+        mcfg['actor_name'],
+        quantization_config=bnb_config,
+        device_map='auto',
+        torch_dtype=torch.bfloat16,
+    )
+
+    lora_cfg = LoraConfig(
+        task_type=TaskType.CAUSAL_LM,
+        r=mcfg['lora_rank'],
+        lora_alpha=mcfg['lora_alpha'],
+        lora_dropout=mcfg.get('lora_dropout', 0.05),
+        target_modules=mcfg.get('target_modules', ['q_proj', 'v_proj']),
+        bias='none',
+    )
+    actor = get_peft_model(actor, lora_cfg)
+
+    # Reference model: same 4-bit base weights, LoRA adapter disabled.
+    # create_reference_model() from peft handles this — no extra VRAM copy.
+    ref_model = create_reference_model(actor)
+
+    trainable = sum(p.numel() for p in actor.parameters() if p.requires_grad)
+    total     = sum(p.numel() for p in actor.parameters())
+    print(f"Actor trainable params: {trainable:,} / {total:,}")
+
+    # ── ClausePRM ─────────────────────────────────────────────────────────────
+    print(f"Loading ClausePRM from {prm_ckpt}...")
+    prm = ClausePRM(
+        model_name=prm_ckpt,
+        lora_rank=mcfg['lora_rank'],
+        lora_alpha=mcfg['lora_alpha'],
+        lora_dropout=mcfg.get('lora_dropout', 0.05),
+        target_modules=mcfg.get('target_modules', ['q_proj', 'v_proj']),
+        use_4bit=use_4bit,
+    )
+    prm.eval()
+
+    # ── Spider data ───────────────────────────────────────────────────────────
+    print("Loading Spider data...")
+    with open(os.path.join(spider_dir, 'tables.json')) as f:
+        tables_dict = {t['db_id']: t for t in json.load(f)}
+
+    with open(os.path.join(spider_dir, 'train_spider.json')) as f:
+        all_train = json.load(f)
+
+    ppo_start   = tcfg.get('ppo_split_start', 4000)
+    ppo_samples = all_train[ppo_start:]
+    print(f"PPO split: {len(ppo_samples)} samples (train_spider[{ppo_start}:])")
+
+    with open(os.path.join(spider_dir, 'dev.json')) as f:
+        dev_samples = json.load(f)
+    print(f"Dev split: {len(dev_samples)} samples")
+
+    # ── Environment ───────────────────────────────────────────────────────────
+    env = NL2SQLEnv(spider_dir=spider_dir, tables=tables_dict)
+
+    # ── trl PPOTrainer ────────────────────────────────────────────────────────
+    ppo_config_obj = PPOConfig(
+        model_name=mcfg['actor_name'],
+        learning_rate=pcfg['learning_rate'],
+        batch_size=pcfg['batch_size'],
+        mini_batch_size=pcfg['mini_batch_size'],
+        gradient_accumulation_steps=pcfg['gradient_accumulation_steps'],
+        ppo_epochs=pcfg['ppo_epochs'],
+        init_kl_coef=pcfg['kl_coef'],
+        max_grad_norm=tcfg['max_grad_norm'],
+    )
+    ppo_trainer = PPOTrainer(
+        config=ppo_config_obj,
+        model=actor,
+        ref_model=ref_model,
+        tokenizer=tokenizer,
+    )
+
+    # ── Episode loop ──────────────────────────────────────────────────────────
+    log_entries: list[dict] = []
+    num_episodes = tcfg['num_episodes']
+
+    print(f"\nStarting PPO training: {num_episodes} episodes")
+
+    for ep_idx in range(num_episodes):
+        sample = ppo_samples[ep_idx % len(ppo_samples)]
+
+        # Step 1: Get a corruption of this sample
+        corruption = get_corrupted_sample(sample, tables_dict)
+        if corruption is None:
+            continue
+        wrong_sql, faulty_clause = corruption
+
+        # Step 2: Reset environment — sets up gold SQL and schema
+        state = env.reset(sample)
+
+        # Step 3: Build rewrite prompt
+        clauses      = split_into_clauses(sample['sql'])
+        clause_names = [name for name, _ in clauses]
+        prompt = build_rewrite_prompt(
+            state['question'], state['schema'],
+            wrong_sql, faulty_clause, clause_names,
+        )
+
+        # Step 4: Actor generates rewritten SQL
+        query_tensor = tokenizer.encode(prompt, return_tensors='pt').squeeze(0)
+        response_tensors = ppo_trainer.generate(
+            [query_tensor],
+            max_new_tokens=pcfg['max_new_tokens'],
+            temperature=pcfg['temperature'],
+            do_sample=True,
+            pad_token_id=tokenizer.pad_token_id,
+        )
+        # Decode only the newly generated tokens (response_tensors includes the query)
+        generated_ids = response_tensors[0][len(query_tensor):]
+        rewritten_sql = tokenizer.decode(generated_ids, skip_special_tokens=True).strip()
+
+        # Step 5: Terminal reward from environment
+        terminal, _ = env.step(rewritten_sql)
+
+        # Step 6: Dense reward from ClausePRM
+        # Build cumulative prefix up to and including faulty clause position
+        try:
+            faulty_idx = clause_names.index(faulty_clause)
+        except ValueError:
+            faulty_idx = len(clause_names) - 1
+        clause_names_up_to_faulty = clause_names[:faulty_idx + 1]
+
+        prm_prompt = build_prm_prompt(
+            state['question'], state['schema'], clause_names_up_to_faulty
+        )
+        prm_inputs = tokenizer(
+            prm_prompt,
+            return_tensors='pt',
+            truncation=True,
+            max_length=512,
+        )
+        prm_inputs = {k: v.to(device) for k, v in prm_inputs.items()}
+        with torch.no_grad():
+            prm_score = prm(
+                prm_inputs['input_ids'],
+                prm_inputs['attention_mask'],
+            ).item()
+
+        # Step 7: Combined reward
+        reward = compute_reward(terminal, prm_score, pcfg['alpha'])
+
+        # Step 8: PPO update
+        ppo_trainer.step(
+            [query_tensor],
+            [response_tensors[0]],
+            [torch.tensor(reward, dtype=torch.float32)],
+        )
+
+        # ── Logging ───────────────────────────────────────────────────────────
+        if (ep_idx + 1) % tcfg['log_every'] == 0:
+            entry = {
+                'episode':      ep_idx + 1,
+                'terminal':     terminal,
+                'prm_score':    round(prm_score, 4),
+                'reward':       round(reward, 4),
+                'faulty_clause': faulty_clause,
+            }
+            log_entries.append(entry)
+            with open(paths['log_file'], 'a') as f:
+                f.write(json.dumps(entry) + '\n')
+            print(
+                f"[Ep {ep_idx+1:>4}/{num_episodes}] "
+                f"terminal={terminal:+.1f}  "
+                f"prm={prm_score:.3f}  "
+                f"reward={reward:+.3f}  "
+                f"clause={faulty_clause}"
+            )
+
+        # ── Checkpoint ────────────────────────────────────────────────────────
+        if (ep_idx + 1) % tcfg['eval_every'] == 0:
+            ckpt_path = os.path.join(paths['output_dir'], f'ep_{ep_idx + 1}')
+            ppo_trainer.model.save_pretrained(ckpt_path)
+            tokenizer.save_pretrained(ckpt_path)
+            print(f"Checkpoint saved → {ckpt_path}")
+
+    print(f"\nPPO training complete. {num_episodes} episodes.")
+    return log_entries
