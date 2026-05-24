@@ -66,19 +66,21 @@ def build_rewrite_prompt(
     )
 
 
-def build_prm_prompt(question: str, schema: str, faulty_clause: str) -> str:
+def build_prm_prompt(question: str, schema: str, clause_names_up_to_faulty: list[str]) -> str:
     """
     Build the ClausePRM scoring prompt for a clause.
 
-    Matches PRMDataset._format_input() exactly so that the PRM receives
-    the same format it was trained on:
-        [QUESTION] {question} [SCHEMA] {schema} [PREFIX] {clause_label}
+    Matches PRMDataset prefix_query_str format: space-joined clause labels
+    up to and including the faulty clause position (e.g. 'FROM WHERE' for
+    position j=1 in [from, where, select] order).
 
     Args:
-        faulty_clause: Spider clause key (e.g. 'where', 'groupBy').
+        clause_names_up_to_faulty: Ordered clause keys up to and including
+            the faulty clause (e.g. ['from', 'where'] when where is faulty).
     """
-    label = CLAUSE_LABELS.get(faulty_clause, faulty_clause.upper())
-    return f"[QUESTION] {question} [SCHEMA] {schema} [PREFIX] {label}"
+    labels = [CLAUSE_LABELS.get(n, n.upper()) for n in clause_names_up_to_faulty]
+    prefix_str = ' '.join(labels)
+    return f"[QUESTION] {question} [SCHEMA] {schema} [PREFIX] {prefix_str}"
 
 
 # ── Reward ────────────────────────────────────────────────────────────────────

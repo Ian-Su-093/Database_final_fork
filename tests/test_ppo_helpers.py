@@ -58,15 +58,20 @@ def test_build_prm_prompt_matches_prm_training_format():
     prompt = build_prm_prompt(
         question="How many singers?",
         schema="Table: singer | Columns: id (number)",
-        faulty_clause="where",
+        clause_names_up_to_faulty=["from", "where"],
     )
-    # Must exactly match PRMDataset._format_input format
-    assert prompt == "[QUESTION] How many singers? [SCHEMA] Table: singer | Columns: id (number) [PREFIX] WHERE"
+    # Matches PRMDataset prefix_query_str cumulative format
+    assert prompt == "[QUESTION] How many singers? [SCHEMA] Table: singer | Columns: id (number) [PREFIX] FROM WHERE"
+
+
+def test_build_prm_prompt_single_clause():
+    prompt = build_prm_prompt(question="Q", schema="S", clause_names_up_to_faulty=["from"])
+    assert prompt == "[QUESTION] Q [SCHEMA] S [PREFIX] FROM"
 
 
 def test_build_prm_prompt_group_by_label():
-    prompt = build_prm_prompt(question="Q", schema="S", faulty_clause="groupBy")
-    assert "[PREFIX] GROUP BY" in prompt
+    prompt = build_prm_prompt(question="Q", schema="S", clause_names_up_to_faulty=["from", "where", "groupBy"])
+    assert "[PREFIX] FROM WHERE GROUP BY" in prompt
 
 
 def test_compute_reward_positive_terminal():
