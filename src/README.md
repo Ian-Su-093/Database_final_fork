@@ -72,36 +72,51 @@ class NL2SQLEnv:
         """
 ```
 
-### Minimal episode loop
+### Episode loop (from `ppo_loop.py`)
+
+The training loop lives entirely in Henry's `ppo_loop.py`. `env` is called like this:
 
 ```python
 from env.env import NL2SQLEnv
-from reward.model import score_clause          # Henry's module
-from data.loader import load_spider            # Ian's module
+from training.ppo_loop import get_corrupted_sample, build_rewrite_prompt, compute_reward
 
-env     = NL2SQLEnv()
-samples = load_spider("train")[4000:]          # PPO split
+env = NL2SQLEnv(spider_dir=spider_dir, tables=tables_dict)
 
-for sample in samples:
+for sample in ppo_samples:                        # train_spider[4000:]
+    # 1. Corruption engine tells us which clause is wrong (no PRM needed here)
+    corruption = get_corrupted_sample(sample, tables_dict)
+    if corruption is None:
+        continue
+    wrong_sql, faulty_clause = corruption          # e.g. wrong_sql, "where"
+
+    # 2. Env provides the initial state (question + formatted schema)
     state = env.reset(sample)
-    # state["schema"] goes into the CodeLlama prompt
 
-    # Henry's actor generates one clause at a time:
-    clause_scores = {}
-    for clause_name, clause_text in generated_clauses.items():
-        context = {
-            "question":        state["question"],
-            "schema":          state["schema"],
-            "clauses_so_far":  clause_scores,
-        }
-        clause_scores[clause_name] = score_clause(clause_name, clause_text, context)
+    # 3. Build prompt → CodeLlama rewrites the full SQL
+    prompt = build_rewrite_prompt(
+        state['question'], state['schema'],
+        wrong_sql, faulty_clause, clause_names,
+    )
+    rewritten_sql = ppo_trainer.generate(prompt)   # simplified
 
-    faulty_clause = env.get_faulty_clause(clause_scores)
-    # CodeLlama rewrites faulty_clause → reconstruct full_sql ...
+    # 4. Terminal reward from env (single call per episode)
+    terminal, done = env.step(rewritten_sql)       # +1.0 or -1.0
 
-    reward, done = env.step(full_sql)
-    # reward fed into PPO update
+    # 5. Dense reward from ClausePRM (scored once on the prefix, not per-clause)
+    prm_score = prm(build_prm_prompt(...))         # float in [0, 1]
+
+    reward = compute_reward(terminal, prm_score, alpha=0.5)
+    # → ppo_trainer.step(...)
 ```
+
+**Note on `get_faulty_clause`:** not called during training — the corruption engine
+already knows the faulty clause. It is used in `validate_env.py` (integration test
+with a mock PRM) and will be relevant at inference time when no corruption engine
+is available.
+
+**Note on `score_clause`:** there is no per-clause scoring loop during generation.
+The PRM scores the corrupted prefix once after generation (see `build_prm_prompt`).
+Clause scoring during autoregressive generation is a future extension.
 
 ### Constructor options
 
