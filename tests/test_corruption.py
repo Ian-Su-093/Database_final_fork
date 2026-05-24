@@ -9,8 +9,9 @@ from data.corruption import (
 from utils.execution import queries_produce_same_result
 from utils.sql_utils import reconstruct_sql
 
-SPIDER_DIR = os.path.join(os.path.dirname(__file__), '..', 'spider')
-
+SPIDER_DIR = os.path.join(
+    os.path.dirname(__file__), '..', 'clause_ppo', 'data', 'spider'
+)
 
 def _load():
     with open(os.path.join(SPIDER_DIR, 'tables.json')) as f:

@@ -2,6 +2,10 @@
 
 ## Data Flow
 
+Two separate feedback signals:
+- **Reward model** (Henry): per-clause float ∈ [0,1], model confidence only, no SQL execution
+- **Executor** (Sam): final +1/-1, based on actual SQLite execution result
+
 ```
 Spider sample (question, gold_sql, db_id)
         │
@@ -13,33 +17,36 @@ Spider sample (question, gold_sql, db_id)
         ▼
 ┌────────────────────────────────────────┐
 │  Sam: env.reset()                      │
-│  1. call Qwen → initial SQL            │
-│  2. execute initial SQL                │
-│  3. if correct → skip episode          │
-│  4. call Henry: score_clauses()        │
-│  5. pick faulty clause (argmin score)  │
-│  6. build state dict                   │
+│  1. load DB schema                     │
+│  2. build prompt (question + schema)   │
+│  3. return initial state               │
 └───────────────────┬────────────────────┘
                     │ state
                     ▼
-        ┌───────────────────────┐
-        │  Henry: PPO Actor     │
-        │  Qwen rewrites clause │
-        └───────────┬───────────┘
-                    │ rewritten_clause (text)
+┌────────────────────────────────────────┐
+│  Henry: PPO Actor (CodeLlama)          │
+│  generates each clause one by one:     │
+│    SELECT ... → reward model → r1      │
+│    FROM ...   → reward model → r2      │
+│    WHERE ...  → reward model → r3      │
+│  faulty clause = argmin(r1, r2, r3)    │
+│  CodeLlama rewrites faulty clause      │
+│  reconstruct full SQL                  │
+└───────────────────┬────────────────────┘
+                    │ final reconstructed SQL
                     ▼
 ┌────────────────────────────────────────┐
 │  Sam: env.step()                       │
-│  1. splice rewritten clause into SQL   │
-│  2. execute on SQLite                  │
-│  3. compare result with gold           │
-│  4. return reward (+1 / -1)            │
+│  1. execute full SQL on SQLite         │
+│  2. compare result with gold           │
+│  3. return final reward (+1 / -1)      │
 └───────────────────┬────────────────────┘
-                    │ reward
+                    │ final reward
                     ▼
         ┌───────────────────────┐
         │  Henry: PPO update    │
-        │  trl PPOTrainer.step  │
+        │  uses both per-clause │
+        │  scores + final reward│
         └───────────────────────┘
 ```
 
@@ -47,11 +54,11 @@ Spider sample (question, gold_sql, db_id)
 
 ## Dataset Setup
 
-Download Spider from https://yale-lily.github.io/spider  
-Extract to `spider/`:
+Download Spider — see `spider/README.md` for instructions.
 
+Extract to `clause_ppo/data/spider/`:
 ```
-spider/
+clause_ppo/data/spider/
 ├── train_spider.json
 ├── train_others.json
 ├── dev.json
@@ -62,7 +69,7 @@ spider/
     └── ...
 ```
 
-Do NOT commit the dataset to the repo (add `spider/` to `.gitignore`).
+Do NOT commit the dataset (`clause_ppo/data/spider/` is in `.gitignore`).
 
 ---
 
@@ -84,7 +91,7 @@ Reason: reward model must not see PPO training data, or it overfits and gives bi
 
 | Name | Description | Who implements |
 |------|-------------|----------------|
-| Vanilla Qwen | Direct generation, no RL | Henry |
+| Vanilla CodeLlama | Direct generation, no RL | Henry |
 | Full regeneration | Wrong SQL → regenerate entire query | Sam + Henry |
 | Ours (Clause PPO) | Wrong SQL → rewrite faulty clause only | All |
 

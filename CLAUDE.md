@@ -13,16 +13,22 @@ final/
 |       ├── PIPELINE.md       ← full pipeline design & data flow
 |       ├── INTERFACES.md     ← agreed function signatures between modules
 |       └── QUESTIONS.md      ← open questions & decisions log
-├── spider/               ← Spider dataset (not committed, see docs/PIPELINE.md)
-├── src/
-│   ├── data/             ← Ian: Spider loader, clause parser
-│   ├── env/              ← Sam: RL environment (reset, step, executor)
-│   ├── reward/           ← Henry: reward model (clause scorer)
-│   ├── ppo/              ← Henry: PPO training loop (trl)
-│   └── eval/             ← Sam: metrics, evaluation harness
-├── scripts/
-│   ├── train.py          ← entry point for PPO training
-│   └── evaluate.py       ← entry point for evaluation on Spider dev
+├── clause_ppo/           ← main training package (Henry, Phase 1+)
+│   ├── configs/          ← YAML configs (prm_config.yaml)
+│   ├── data/
+│   │   ├── processed/    ← built datasets (corruption_dataset.json, etc.)
+│   │   └── spider/       ← Spider dataset symlink (not committed)
+│   ├── scripts/
+│   │   ├── build_corruption_dataset.py
+│   │   └── train_prm.py
+│   └── src/
+│       ├── data/         ← clause_splitter, corruption, dataset
+│       ├── models/       ← prm.py
+│       ├── training/     ← train_prm.py
+│       └── utils/        ← execution.py, sql_utils.py
+├── src/                  ← TBD (env, eval — Sam)
+├── scripts/              ← TBD
+├── tests/                ← test suite
 ├── requirements.txt
 └── README.md
 ```
@@ -38,11 +44,12 @@ final/
 ## Key Design Decisions
 
 - **Dataset**: Spider (SQLite, no server needed)
-- **Model**: Qwen2.5-Coder (size TBD with Henry)
+- **Model**: CodeLlama-7B
 - **RL framework**: `trl` PPO Trainer
 - **Data split**: 4000 train → reward model, 3000 train → PPO, dev → eval only
-- **Episode init**: Option B — use Qwen's actual wrong output (not corrupted gold)
-- **Baseline 1**: Vanilla Qwen, no RL
+- **Episode init**: Option B — use CodeLlama's actual wrong output (not corrupted gold)
+- **Reward shaping**: +1/0 (correct/incorrect); partial credit under consideration (see QUESTIONS.md)
+- **Baseline 1**: Vanilla CodeLlama, no RL
 - **Baseline 2**: Full query regeneration (no clause-level repair)
 
 ## Environment Setup
@@ -55,7 +62,7 @@ pip install -r requirements.txt
 # see docs/PIPELINE.md for instructions
 ```
 
-Training runs on Henry's Windows PC (WSL2, RTX 5090).  
+Training runs on Henry's Windows PC (WSL2, RTX 4090).  
 Development and eval can run on any machine with Python 3.10+.
 
 ## Open Questions
