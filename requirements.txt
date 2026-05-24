@@ -1,3 +1,4 @@
+trl<0.8
 beautifulsoup4==4.14.3
 certifi==2026.5.20
 charset-normalizer==3.4.7

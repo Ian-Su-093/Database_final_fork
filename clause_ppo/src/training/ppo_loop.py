@@ -175,8 +175,8 @@ def train_ppo(config: dict, spider_dir: str, prm_ckpt: str) -> list[dict]:
     """
     import json
     import torch
-    from trl import PPOTrainer, PPOConfig, AutoModelForCausalLMWithValueHead
-    from peft import LoraConfig, get_peft_model, TaskType, create_reference_model
+    from peft import LoraConfig, get_peft_model, TaskType
+    from trl  import PPOTrainer, PPOConfig, AutoModelForCausalLMWithValueHead, create_reference_model
     from transformers import AutoTokenizer, BitsAndBytesConfig
 
     # Make src/ (env, eval) importable
@@ -219,13 +219,6 @@ def train_ppo(config: dict, spider_dir: str, prm_ckpt: str) -> list[dict]:
             bnb_4bit_use_double_quant=True,
         )
 
-    actor = AutoModelForCausalLMWithValueHead.from_pretrained(
-        mcfg['actor_name'],
-        quantization_config=bnb_config,
-        device_map='auto',
-        torch_dtype=torch.bfloat16,
-    )
-
     lora_cfg = LoraConfig(
         task_type=TaskType.CAUSAL_LM,
         r=mcfg['lora_rank'],
@@ -234,10 +227,16 @@ def train_ppo(config: dict, spider_dir: str, prm_ckpt: str) -> list[dict]:
         target_modules=mcfg.get('target_modules', ['q_proj', 'v_proj']),
         bias='none',
     )
-    actor = get_peft_model(actor, lora_cfg)
+    actor = AutoModelForCausalLMWithValueHead.from_pretrained(
+        mcfg['actor_name'],
+        quantization_config=bnb_config,
+        device_map='auto',
+        torch_dtype=torch.bfloat16,
+        peft_config=lora_cfg,
+    )
 
     # Reference model: same 4-bit base weights, LoRA adapter disabled.
-    # create_reference_model() from peft handles this — no extra VRAM copy.
+    # create_reference_model() from trl handles this — no extra VRAM copy.
     ref_model = create_reference_model(actor)
 
     trainable = sum(p.numel() for p in actor.parameters() if p.requires_grad)
@@ -268,10 +267,6 @@ def train_ppo(config: dict, spider_dir: str, prm_ckpt: str) -> list[dict]:
     ppo_samples = all_train[ppo_start:]
     print(f"PPO split: {len(ppo_samples)} samples (train_spider[{ppo_start}:])")
 
-    with open(os.path.join(spider_dir, 'dev.json')) as f:
-        dev_samples = json.load(f)
-    print(f"Dev split: {len(dev_samples)} samples")
-
     # ── Environment ───────────────────────────────────────────────────────────
     env = NL2SQLEnv(spider_dir=spider_dir, tables=tables_dict)
 
@@ -295,6 +290,7 @@ def train_ppo(config: dict, spider_dir: str, prm_ckpt: str) -> list[dict]:
 
     # ── Episode loop ──────────────────────────────────────────────────────────
     log_entries: list[dict] = []
+    trained_episodes = 0
     num_episodes = tcfg['num_episodes']
 
     print(f"\nStarting PPO training: {num_episodes} episodes")
@@ -369,6 +365,8 @@ def train_ppo(config: dict, spider_dir: str, prm_ckpt: str) -> list[dict]:
             [torch.tensor(reward, dtype=torch.float32)],
         )
 
+        trained_episodes += 1
+
         # ── Logging ───────────────────────────────────────────────────────────
         if (ep_idx + 1) % tcfg['log_every'] == 0:
             entry = {
@@ -396,5 +394,5 @@ def train_ppo(config: dict, spider_dir: str, prm_ckpt: str) -> list[dict]:
             tokenizer.save_pretrained(ckpt_path)
             print(f"Checkpoint saved → {ckpt_path}")
 
-    print(f"\nPPO training complete. {num_episodes} episodes.")
+    print(f"\nPPO training complete. {trained_episodes} trained episodes ({num_episodes} iterations).")
     return log_entries
