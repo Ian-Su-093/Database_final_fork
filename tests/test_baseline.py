@@ -148,10 +148,11 @@ def test_build_baseline_prompt_marker_order():
 def test_run_baseline_returns_expected_dict_shape():
     gen = make_fake_generate_fn([('SELECT 1', 10, 8)])
     out = run_baseline({}, gen, max_retries=3, env=FakeEnv('SELECT 1'))
-    assert set(out.keys()) == {'predicted_sql', 'token_cost', 'attempts'}
+    assert set(out.keys()) == {'predicted_sql', 'token_cost', 'attempts', 'success'}
     assert isinstance(out['predicted_sql'], str)
     assert isinstance(out['token_cost'],    int)
     assert isinstance(out['attempts'],      int)
+    assert isinstance(out['success'],       bool)
 
 
 def test_run_baseline_stops_on_first_correct():
@@ -160,6 +161,7 @@ def test_run_baseline_stops_on_first_correct():
     assert out['attempts']      == 1
     assert out['predicted_sql'] == 'SELECT 1'
     assert out['token_cost']    == 18
+    assert out['success']       is True
 
 
 def test_run_baseline_retries_up_to_max_when_always_wrong():
@@ -167,6 +169,7 @@ def test_run_baseline_retries_up_to_max_when_always_wrong():
     out = run_baseline({}, gen, max_retries=3, env=FakeEnv('SELECT 1'))
     assert out['attempts']      == 3
     assert out['predicted_sql'] == 'C'        # last attempt, not first
+    assert out['success']       is False      # never matched gold
 
 
 def test_run_baseline_succeeds_on_last_attempt():
@@ -174,6 +177,7 @@ def test_run_baseline_succeeds_on_last_attempt():
     out = run_baseline({}, gen, max_retries=3, env=FakeEnv('SELECT 1'))
     assert out['attempts']      == 3
     assert out['predicted_sql'] == 'SELECT 1'
+    assert out['success']       is True
 
 
 def test_run_baseline_max_retries_one():

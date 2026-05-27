@@ -74,7 +74,7 @@ def run_baseline(
         spider_dir, tables: forwarded to NL2SQLEnv when ``env`` is None.
 
     Returns:
-        {"predicted_sql": str, "token_cost": int, "attempts": int}
+        {"predicted_sql": str, "token_cost": int, "attempts": int, "success": bool}
     """
     if env is None:
         env = NL2SQLEnv(spider_dir=spider_dir, tables=tables)
@@ -84,6 +84,7 @@ def run_baseline(
     predicted_sql = ''
     token_cost    = 0
     attempts      = 0
+    success       = False
 
     for _ in range(max_retries):
         attempts += 1
@@ -93,12 +94,14 @@ def run_baseline(
 
         reward, _ = env.step(sql)
         if reward > 0:
+            success = True
             break
 
     return {
         'predicted_sql': predicted_sql,
         'token_cost':    token_cost,
         'attempts':      attempts,
+        'success':       success,
     }
 
 

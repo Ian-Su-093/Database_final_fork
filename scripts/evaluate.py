@@ -109,7 +109,7 @@ def run_full_regen(
             f"[{i+1}/{len(samples)}] "
             f"Token cost: {result['token_cost']} | "
             f"Attempts: {result['attempts']} | "
-            f"Success: {result['predicted_sql'] == sample.get('gold_sql', sample.get('query'))}"
+            f"Success: {result['success']}"
         )
         
     return predictions, token_costs, attempt_counts

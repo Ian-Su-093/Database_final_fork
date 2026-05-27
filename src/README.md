@@ -192,7 +192,8 @@ client      = InferenceClient(token=HF_TOKEN)
 generate_fn = make_hf_api_generate_fn(client, model=BASELINE_MODEL)
 
 result = run_baseline(sample, generate_fn, max_retries=3, env=env)
-# {"predicted_sql": ..., "token_cost": ..., "attempts": ...}
+# {"predicted_sql": ..., "token_cost": ..., "attempts": ..., "success": ...}
+# success = execution-correct (matched gold within max_retries), NOT string equality
 ```
 
 - **`attempts`** — retry-loop count; backend-independent.
