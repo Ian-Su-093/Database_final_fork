@@ -171,12 +171,67 @@ diagnosis; use EX as the primary metric.
 
 ---
 
+## Baseline (`src/baseline/full_regen.py`)
+
+Full-SQL regeneration baseline for the eval table. `run_baseline` is
+backend-agnostic — it takes a `generate_fn` rather than a model, so any
+backend works as long as it satisfies the contract:
+
+```python
+generate_fn(prompt: str) -> (sql_text: str, n_input_tokens: int, n_output_tokens: int)
+```
+
+### With the HF Inference API (Qwen2.5-Coder-1.5B)
+
+```python
+from huggingface_hub import InferenceClient
+from baseline.full_regen import make_hf_api_generate_fn, run_baseline
+
+client      = InferenceClient(provider='hf-inference', token=HF_TOKEN)
+generate_fn = make_hf_api_generate_fn(client, model='qwen/qwen2.5-coder-1.5b')
+
+result = run_baseline(sample, generate_fn, max_retries=3, env=env)
+# {"predicted_sql": ..., "token_cost": ..., "attempts": ...}
+```
+
+- **`attempts`** — retry-loop count; backend-independent.
+- **`token_cost`** — cumulative (input + output) tokens across all attempts.
+  Pulled from the server's `completion.usage`; pass `fallback_tokenizer=` to
+  `make_hf_api_generate_fn` if your provider omits usage stats.
+- Chat replies wrapped in ```` ```sql ... ``` ```` fences are unwrapped before
+  execution.
+
+> ⚠ **Backbone note:** the baseline uses Qwen-1.5B (remote API); the PPO actor
+> is CodeLlama-7B (local). The eval table compares a cheap API baseline vs the
+> trained model — see `.claude/docs/PIPELINE.md`.
+
+### Adding another backend
+
+Write a `generate_fn` (e.g. a local `model.generate` wrapper, or the PPO actor
+once inference exists) and pass it straight to `run_baseline`.
+
+---
+
+## Evaluation driver (`scripts/evaluate.py`)
+
+```bash
+export HF_TOKEN=...      # baseline calls the HF Inference API
+python scripts/evaluate.py --split dev --max-retries 3 --max-samples 20
+```
+
+Runs the full-regen baseline over the split and prints the comparison table.
+`--ppo-ckpt` is accepted but the PPO path raises `NotImplementedError` until
+Henry exposes an actor-loading inference entry point (see QUESTIONS.md).
+
+---
+
 ## Running the tests
 
 ```bash
 source venv/bin/activate
 pip install pytest
-python -m pytest tests/test_env.py tests/test_metrics.py -v
+python -m pytest tests/ -v
 ```
 
-33 tests, all green, no GPU required.
+`test_env`, `test_metrics`, `test_baseline`, `test_evaluate` — all green, no
+GPU and no API calls required (model/tokenizer/env/client are all faked).
