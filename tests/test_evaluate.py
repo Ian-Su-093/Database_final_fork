@@ -35,7 +35,7 @@ def test_run_clause_ppo_raises_not_implemented():
 def test_build_inference_client_requires_token():
     # No token (and the lazy huggingface_hub import never happens) → fail loudly.
     with pytest.raises(SystemExit, match="HF token"):
-        evaluate.build_inference_client(provider='hf-inference', token=None)
+        evaluate.build_inference_client(token=None)
 
 
 # ── print_table output formatting ──────────────────────────────────────────
