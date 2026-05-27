@@ -10,6 +10,7 @@ from baseline.full_regen import (
     make_hf_api_generate_fn,
     run_baseline,
     _extract_sql,
+    _is_retryable,
     _usage_tokens,
 )
 
@@ -86,6 +87,46 @@ class WordTokenizer:
     """Fallback tokenizer stand-in: token count == word count."""
     def encode(self, text):
         return text.split()
+
+
+class _Resp:
+    def __init__(self, status_code):
+        self.status_code = status_code
+
+
+class FakeHTTPError(Exception):
+    """Stands in for HfHubHTTPError — carries .response.status_code."""
+    def __init__(self, status_code):
+        super().__init__(f"HTTP {status_code}")
+        self.response = _Resp(status_code)
+
+
+class ConnectTimeout(Exception):
+    """Class name matches _RETRYABLE_EXC_NAMES; has no .response."""
+
+
+class _ScriptedCompletions:
+    """create() walks a script: raise Exceptions, return _Completions."""
+    def __init__(self, script: list):
+        self._script = list(script)
+        self._i      = 0
+        self.calls   = 0
+
+    def create(self, model, messages, max_tokens):
+        self.calls += 1
+        item = self._script[self._i]
+        self._i += 1
+        if isinstance(item, Exception):
+            raise item
+        return item
+
+
+def make_scripted_client(script: list):
+    """Return (client, completions) where client.chat.completions follows script."""
+    client = FakeClient([])
+    comps  = _ScriptedCompletions(script)
+    client.chat.completions = comps
+    return client, comps
 
 
 # ── build_baseline_prompt ──────────────────────────────────────────────────
@@ -195,6 +236,63 @@ def test_api_adapter_raises_without_usage_or_fallback():
     gen    = make_hf_api_generate_fn(client, model='m')
     with pytest.raises(RuntimeError, match="usage"):
         gen("prompt")
+
+
+# ── make_hf_api_generate_fn: transient-error retries ───────────────────────
+
+def test_api_adapter_retries_transient_then_succeeds():
+    good = _Completion('SELECT 1', usage=_Usage(5, 3))
+    client, comps = make_scripted_client([FakeHTTPError(504), good])
+    gen = make_hf_api_generate_fn(client, model='m', api_retries=4, backoff_secs=0)
+    sql, n_in, n_out = gen("p")
+    assert sql == 'SELECT 1'
+    assert comps.calls == 2           # one 504, then success
+
+
+def test_api_adapter_does_not_retry_non_transient():
+    client, comps = make_scripted_client([FakeHTTPError(400)])
+    gen = make_hf_api_generate_fn(client, model='m', api_retries=4, backoff_secs=0)
+    with pytest.raises(FakeHTTPError):
+        gen("p")
+    assert comps.calls == 1           # 400 is permanent — no retry
+
+
+def test_api_adapter_retries_connection_timeout():
+    good = _Completion('SELECT 1', usage=_Usage(1, 1))
+    client, comps = make_scripted_client([ConnectTimeout("boom"), good])
+    gen = make_hf_api_generate_fn(client, model='m', api_retries=4, backoff_secs=0)
+    sql, _, _ = gen("p")
+    assert sql == 'SELECT 1'
+    assert comps.calls == 2
+
+
+def test_api_adapter_raises_after_exhausting_retries():
+    client, comps = make_scripted_client([FakeHTTPError(503)] * 3)
+    gen = make_hf_api_generate_fn(client, model='m', api_retries=3, backoff_secs=0)
+    with pytest.raises(FakeHTTPError):
+        gen("p")
+    assert comps.calls == 3           # tried exactly api_retries times
+
+
+# ── _is_retryable ────────────────────────────────────────────────────────────
+
+def test_is_retryable_5xx_and_429():
+    assert _is_retryable(FakeHTTPError(504))
+    assert _is_retryable(FakeHTTPError(503))
+    assert _is_retryable(FakeHTTPError(429))
+
+
+def test_is_not_retryable_4xx():
+    assert not _is_retryable(FakeHTTPError(400))
+    assert not _is_retryable(FakeHTTPError(401))
+
+
+def test_is_retryable_connection_timeout_by_name():
+    assert _is_retryable(ConnectTimeout("x"))
+
+
+def test_is_not_retryable_unknown_exception():
+    assert not _is_retryable(ValueError("a real bug, not a transient API error"))
 
 
 # ── _extract_sql ─────────────────────────────────────────────────────────────
