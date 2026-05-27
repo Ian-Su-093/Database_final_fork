@@ -113,8 +113,10 @@ intentional, documented in PIPELINE.md / QUESTIONS.md.
 ```
 CLI: python scripts/evaluate.py --split dev [--max-retries 3]
        [--model qwen/qwen2.5-coder-1.5b] [--provider hf-inference]
-       [--hf-token … | $HF_TOKEN] [--max-tokens 500]
-       [--max-samples N] [--output preds.json] [--ppo-ckpt path]
+       [--max-tokens 500] [--max-samples N] [--output preds.json] [--ppo-ckpt path]
+
+HF token: read from HF_TOKEN in .env (repo root) — never a CLI flag.
+Defaults live in src/config.py.
 
 Output:
 | Method     | Accuracy@N | Avg Token Cost |

@@ -186,9 +186,10 @@ generate_fn(prompt: str) -> (sql_text: str, n_input_tokens: int, n_output_tokens
 ```python
 from huggingface_hub import InferenceClient
 from baseline.full_regen import make_hf_api_generate_fn, run_baseline
+from config import HF_TOKEN, BASELINE_MODEL, HF_PROVIDER   # HF_TOKEN read from .env
 
-client      = InferenceClient(provider='hf-inference', token=HF_TOKEN)
-generate_fn = make_hf_api_generate_fn(client, model='qwen/qwen2.5-coder-1.5b')
+client      = InferenceClient(provider=HF_PROVIDER, token=HF_TOKEN)
+generate_fn = make_hf_api_generate_fn(client, model=BASELINE_MODEL)
 
 result = run_baseline(sample, generate_fn, max_retries=3, env=env)
 # {"predicted_sql": ..., "token_cost": ..., "attempts": ...}
@@ -212,10 +213,17 @@ once inference exists) and pass it straight to `run_baseline`.
 
 ---
 
+## Configuration & secrets
+
+Shared defaults (Spider path, execution oracle, baseline backbone) live in
+[`src/config.py`](config.py). The HF token is **not** a constant or a CLI flag —
+copy `.env.example` to `.env` and set `HF_TOKEN`; `config.py` loads it on import.
+`.env` is gitignored.
+
 ## Evaluation driver (`scripts/evaluate.py`)
 
 ```bash
-export HF_TOKEN=...      # baseline calls the HF Inference API
+cp .env.example .env        # then set HF_TOKEN=...  (baseline calls the HF Inference API)
 python scripts/evaluate.py --split dev --max-retries 3 --max-samples 20
 ```
 
