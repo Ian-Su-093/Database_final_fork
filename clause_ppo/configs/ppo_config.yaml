@@ -1,0 +1,33 @@
+# PPO training configuration for CLAUSE-PPO Phase 2
+# Target hardware: NVIDIA RTX 4090 (24 GB VRAM)
+
+model:
+  actor_name: codellama/CodeLlama-7b-hf
+  prm_checkpoint: results/prm_checkpoints/best_checkpoint
+  lora_rank: 16
+  lora_alpha: 32
+  lora_dropout: 0.05
+  target_modules: [q_proj, v_proj]
+  quantization: 4bit           # '4bit' | 'none'
+
+ppo:
+  alpha: 0.5                   # weight on PRM score in combined reward
+  kl_coef: 0.1                 # initial KL penalty coefficient
+  learning_rate: 1.0e-5
+  batch_size: 1                # PPO episode batch (VRAM constrained)
+  mini_batch_size: 1
+  gradient_accumulation_steps: 1  # trl PPO: batch_size must be divisible by (mini_batch_size * this); with batch_size=1, must be 1
+  ppo_epochs: 4                # inner PPO update epochs per batch
+  max_new_tokens: 128          # max tokens for rewritten SQL generation
+  temperature: 0.7
+
+training:
+  num_episodes: 3000           # one pass through PPO split
+  ppo_split_start: 4000        # start index in train_spider.json
+  max_grad_norm: 1.0
+  eval_every: 200              # episodes between checkpoints
+  log_every: 20                # episodes between log entries
+
+paths:
+  output_dir: results/ppo_checkpoints
+  log_file: results/ppo_training_log.jsonl

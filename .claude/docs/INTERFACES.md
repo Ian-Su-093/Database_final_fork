@@ -52,14 +52,17 @@ def parse_clauses(sql: str) -> dict[str, str]:
 ```python
 # src/reward/model.py
 
-def score_clauses(sql: str, db_id: str) -> dict[str, float]:
+def score_clause(clause_name: str, clause_text: str, context: dict) -> float:
     """
+    Called once per clause, right after Qwen generates it.
     Args:
-        sql:    the (potentially wrong) SQL query
-        db_id:  Spider database id
+        clause_name:  e.g. "WHERE"
+        clause_text:  e.g. "age > 200"
+        context:      {"question": str, "schema": str, "clauses_so_far": dict}
     Returns:
-        per-clause score, lower = more likely wrong
-        e.g. {"SELECT": 0.95, "FROM": 0.91, "WHERE": 0.12}
+        float ∈ [0, 1], lower = more likely wrong
+    Note:
+        No SQL execution — model confidence only.
     """
 ```
 
@@ -77,21 +80,29 @@ class NL2SQLEnv:
             sample: one entry from load_spider()
         Returns:
             state = {
-                "question":      str,
-                "schema":        str,   # formatted DB schema for prompt
-                "wrong_sql":     str,
-                "faulty_clause": str,   # clause name, e.g. "WHERE"
-                "db_id":         str
+                "question": str,
+                "schema":   str,   # formatted DB schema for CodeLlama prompt
+                "db_id":    str
             }
         """
 
-    def step(self, rewritten_clause: str) -> tuple[float, bool]:
+    def step(self, full_sql: str) -> tuple[float, bool]:
         """
+        Called ONCE after all clauses are generated and reconstructed.
         Args:
-            rewritten_clause: Qwen's rewrite of the faulty clause (text only)
+            full_sql: complete reconstructed SQL after clause rewrite
         Returns:
-            reward: +1.0 if result matches gold, -1.0 otherwise
-            done:   always True (one clause rewrite per episode)
+            reward: +1.0 if execution result matches gold, -1.0 otherwise
+            done:   always True (one rewrite per episode)
+        """
+
+    def get_faulty_clause(self, clause_scores: dict[str, float]) -> str:
+        """
+        Trivial helper — just argmin.
+        Args:
+            clause_scores: output of Henry's score_clause() calls
+        Returns:
+            clause name with lowest score, e.g. "WHERE"
         """
 ```
 

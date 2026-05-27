@@ -3,8 +3,9 @@ import os, sys, json
 import pytest
 from data.clause_splitter import split_into_clauses, clauses_to_prefix_states, schema_to_string
 
-SPIDER_DIR = os.path.join(os.path.dirname(__file__), '..', 'spider')
-
+SPIDER_DIR = os.path.join(
+    os.path.dirname(__file__), '..', 'clause_ppo', 'data', 'spider'
+)
 
 def _tables():
     with open(os.path.join(SPIDER_DIR, 'tables.json')) as f:

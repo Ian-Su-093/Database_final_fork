@@ -13,9 +13,7 @@ build/
 .ipynb_checkpoints
 
 # Virtual environments
-.env
 .venv
-env/
 venv/
 
 # VS Code settings
