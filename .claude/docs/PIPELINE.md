@@ -76,16 +76,32 @@ where:
 Spider dev sample
         │
         ▼
-Ian: run_baseline(sample, model, tokenizer, max_retries=3)
+run_baseline(sample, generate_fn, max_retries=3, env=...)
+  prompt = build_baseline_prompt(question, schema)   ← [QUESTION][SCHEMA][SQL]
   for attempt in range(max_retries):
-    generate full SQL from question + schema
-    if execute(sql) == gold: break
+    sql, n_in, n_out = generate_fn(prompt)            ← injected backend
+    if env.step(sql) == +1: break
   → {predicted_sql, token_cost, attempts}
         │
         ▼
-Sam: execution_accuracy + token cost comparison
+Sam: execution_accuracy + avg token cost
   → table: Full Regen vs Clause PPO
 ```
+
+**Backend is injected.** `run_baseline` takes a `generate_fn` with contract
+`prompt -> (sql_text, n_input_tokens, n_output_tokens)`, so it is decoupled
+from any specific model. `make_hf_api_generate_fn()` adapts a
+`huggingface_hub.InferenceClient` (chat-completions); token counts come from
+the server's `completion.usage`.
+
+**⚠ Backbone differs from the PPO actor (intentional).**
+The baseline backbone is **Qwen2.5-Coder-1.5B via the HF Inference API**
+(small, remote), while the PPO method is **CodeLlama-7B** trained locally.
+The comparison table therefore contrasts a cheap API baseline against the
+trained model — *not* two configs of the same backbone. Consequences:
+- Accuracy differences mix model-size effects with method effects.
+- "Avg Token Cost" is not strictly comparable across the two tokenizers.
+This is a deliberate framing choice (see QUESTIONS.md), not an oversight.
 
 ---
 
