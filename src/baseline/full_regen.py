@@ -9,21 +9,12 @@ Any callable with this contract works:
 
     generate_fn(prompt: str) -> (sql_text: str, n_input_tokens: int, n_output_tokens: int)
 
-make_hf_api_generate_fn() adapts a huggingface_hub InferenceClient
-(chat-completions) to that contract. The baseline backbone is
-Qwen2.5-Coder-1.5B served via the HF Inference API — a deliberately small,
-remote model. NOTE: this differs from the PPO actor (CodeLlama-7B, local),
-so the eval table compares a cheap API baseline against the trained model,
-not two configurations of the same backbone. See .claude/docs/PIPELINE.md.
-
-The prompt mirrors build_rewrite_prompt() in
-clause_ppo/src/training/ppo_loop.py (minus the [WRONG_SQL] section) so the
-baseline and PPO actor see the same input layout.
 """
 
 import os
 import re
 import sys
+import time
 from typing import Callable, Optional
 
 # ── Make sibling packages importable ────────────────────────────────────────
@@ -34,8 +25,8 @@ for _p in (_CLAUSE_PPO_SRC, _SRC_ROOT):
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
-from config import SPIDER_DIR, MAX_TOKENS   # noqa: E402
-from env.env import NL2SQLEnv               # noqa: E402
+from config import SPIDER_DIR, MAX_TOKENS, API_RETRIES, API_BACKOFF_SECS
+from env.env import NL2SQLEnv
 
 
 # ── Types ──────────────────────────────────────────────────────────────────
@@ -83,9 +74,7 @@ def run_baseline(
         spider_dir, tables: forwarded to NL2SQLEnv when ``env`` is None.
 
     Returns:
-        ``{"predicted_sql": str, "token_cost": int, "attempts": int}``
-        where ``token_cost`` is the cumulative (input + output) token count
-        across every attempt made.
+        {"predicted_sql": str, "token_cost": int, "attempts": int}
     """
     if env is None:
         env = NL2SQLEnv(spider_dir=spider_dir, tables=tables)
@@ -118,25 +107,25 @@ def make_hf_api_generate_fn(
     model:              str,
     max_tokens:         int = MAX_TOKENS,
     fallback_tokenizer=None,
+    api_retries:        int = API_RETRIES,
+    backoff_secs:       float = API_BACKOFF_SECS,
 ) -> GenerateFn:
     """
     Adapt a huggingface_hub InferenceClient to the generate_fn contract.
 
-    Token counts come from the server's ``completion.usage`` when present.
-    If a provider omits usage, ``fallback_tokenizer`` (a HF tokenizer) is used
-    to count locally; with neither, we fail loudly rather than report 0.
-
     Args:
         client:             a huggingface_hub.InferenceClient.
-        model:              model id, e.g. 'qwen/qwen2.5-coder-1.5b'.
+        model:              model id, e.g. 'Qwen/Qwen2.5-Coder-1.5B-Instruct:featherless-ai'.
         max_tokens:         max generated tokens per call.
         fallback_tokenizer: optional HF tokenizer used only when the API
                             response carries no usage stats.
+        api_retries:        attempts per call before giving up on transient errors.
+        backoff_secs:       base for exponential backoff (base * 2**attempt).
 
     Returns:
         generate_fn(prompt) -> (sql_text, n_input_tokens, n_output_tokens).
     """
-    def generate_fn(prompt: str) -> tuple[str, int, int]:
+    def _call_once(prompt: str) -> tuple[str, int, int]:
         completion = client.chat.completions.create(
             model=model,
             messages=[{'role': 'user', 'content': prompt}],
@@ -146,10 +135,49 @@ def make_hf_api_generate_fn(
         n_in, n_out = _usage_tokens(completion, prompt, raw_text, fallback_tokenizer)
         return _extract_sql(raw_text), n_in, n_out
 
+    def generate_fn(prompt: str) -> tuple[str, int, int]:
+        for attempt in range(api_retries):
+            try:
+                return _call_once(prompt)
+            except Exception as exc:
+                if not _is_retryable(exc) or attempt == api_retries - 1:
+                    raise
+                wait = backoff_secs * (2 ** attempt)
+                print(f"  transient API error ({_err_label(exc)}); "
+                      f"retry {attempt + 1}/{api_retries - 1} in {wait:.0f}s")
+                time.sleep(wait)
+        # Unreachable: the loop either returns or raises.
+        raise RuntimeError("retry loop exited without returning")
+
     return generate_fn
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────
+
+_RETRYABLE_STATUS = {429, 500, 502, 503, 504}
+_RETRYABLE_EXC_NAMES = {
+    'TimeoutException', 'ConnectTimeout', 'ReadTimeout', 'WriteTimeout',
+    'PoolTimeout', 'ConnectError', 'RemoteProtocolError',
+}
+
+
+def _http_status(exc: Exception):
+    """Best-effort HTTP status code from an exception, or None."""
+    return getattr(getattr(exc, 'response', None), 'status_code', None)
+
+
+def _is_retryable(exc: Exception) -> bool:
+    """True for transient API failures (5xx / 429 / connection timeouts)."""
+    status = _http_status(exc)
+    if status is not None:
+        return status in _RETRYABLE_STATUS
+    return exc.__class__.__name__ in _RETRYABLE_EXC_NAMES
+
+
+def _err_label(exc: Exception) -> str:
+    status = _http_status(exc)
+    return f"HTTP {status}" if status is not None else exc.__class__.__name__
+
 
 _FENCE_PATTERN = re.compile(r'```(?:sql)?\s*(.*?)```', re.DOTALL | re.IGNORECASE)
 
@@ -157,10 +185,6 @@ _FENCE_PATTERN = re.compile(r'```(?:sql)?\s*(.*?)```', re.DOTALL | re.IGNORECASE
 def _extract_sql(text: str) -> str:
     """
     Pull SQL out of a chat model's reply.
-
-    Chat models reliably wrap SQL in ```sql ...``` fences; the env executes the
-    raw string, so stripping the fence is required for a fair EX score. When no
-    fence is present, the trimmed text is returned unchanged.
     """
     text = text.strip()
     match = _FENCE_PATTERN.search(text)
@@ -177,9 +201,6 @@ def _usage_tokens(
 ) -> tuple[int, int]:
     """
     Resolve (input_tokens, output_tokens) for one API call.
-
-    Prefers the server's usage stats; falls back to a local tokenizer; raises
-    if neither is available so token_cost is never silently zero.
     """
     usage = getattr(completion, 'usage', None)
     if usage is not None:

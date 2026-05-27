@@ -1,10 +1,5 @@
 """
-Central configuration for Sam's eval + baseline pipeline.
-
-Constants shared across env, eval, baseline, and scripts/evaluate.py live here
-so dataset paths, the execution oracle, and the baseline backbone are tuned in
-one place. Secrets (the HF token) are read from a `.env` file at the repo root
-and are never committed.
+Central configuration for eval + baseline pipeline.
 """
 
 import os
@@ -22,7 +17,11 @@ REWARD_WRONG   = -1.0
 # ── Baseline backbone (HF Inference API) ─────────────────────────────────────
 BASELINE_MODEL = 'Qwen/Qwen2.5-Coder-1.5B-Instruct:featherless-ai'
 MAX_TOKENS     = 500      # max generated tokens per API call
-MAX_RETRIES    = 3        # full-regen attempts per sample
+MAX_RETRIES    = 3        # full-regen attempts per sample (wrong-SQL retries)
+
+# ── API retry policy ─────────────────────────────────────────────────────────
+API_RETRIES      = 4      # attempts per API call before giving up
+API_BACKOFF_SECS = 2.0    # base for exponential backoff: base * 2**attempt
 
 # ── Eval diagnostics ─────────────────────────────────────────────────────────
 CLAUSE_KEYWORDS = ['SELECT', 'FROM', 'WHERE', 'GROUP BY', 'HAVING', 'ORDER BY', 'LIMIT']
