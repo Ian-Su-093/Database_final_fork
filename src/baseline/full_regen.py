@@ -34,18 +34,14 @@ for _p in (_CLAUSE_PPO_SRC, _SRC_ROOT):
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
-from env.env import NL2SQLEnv, DEFAULT_SPIDER_DIR   # noqa: E402
+from config import SPIDER_DIR, MAX_TOKENS   # noqa: E402
+from env.env import NL2SQLEnv               # noqa: E402
 
 
 # ── Types ──────────────────────────────────────────────────────────────────
 
 # prompt -> (sql_text, n_input_tokens, n_output_tokens)
 GenerateFn = Callable[[str], tuple[str, int, int]]
-
-
-# ── Module-level defaults ──────────────────────────────────────────────────
-
-DEFAULT_MAX_TOKENS = 500   # matches the teammate's InferenceClient call
 
 
 # ── Public API ─────────────────────────────────────────────────────────────
@@ -68,7 +64,7 @@ def run_baseline(
     generate_fn: GenerateFn,
     max_retries: int = 3,
     env:         Optional[NL2SQLEnv] = None,
-    spider_dir:  str = DEFAULT_SPIDER_DIR,
+    spider_dir:  str = SPIDER_DIR,
     tables:      Optional[dict] = None,
 ) -> dict:
     """
@@ -120,7 +116,7 @@ def run_baseline(
 def make_hf_api_generate_fn(
     client,
     model:              str,
-    max_tokens:         int = DEFAULT_MAX_TOKENS,
+    max_tokens:         int = MAX_TOKENS,
     fallback_tokenizer=None,
 ) -> GenerateFn:
     """
