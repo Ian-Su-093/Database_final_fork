@@ -34,7 +34,7 @@ from env.env             import NL2SQLEnv
 from eval.metrics        import execution_accuracy
 from baseline.full_regen import make_hf_api_generate_fn, run_baseline
 from config import (
-    SPIDER_DIR, BASELINE_MODEL, HF_PROVIDER, MAX_TOKENS, MAX_RETRIES, HF_TOKEN,
+    SPIDER_DIR, BASELINE_MODEL, MAX_TOKENS, MAX_RETRIES, HF_TOKEN,
 )
 
 
@@ -50,8 +50,6 @@ def parse_args():
     p.add_argument('--max-retries', type=int, default=MAX_RETRIES)
     p.add_argument('--model',       default=BASELINE_MODEL,
                    help='HF Inference API model id for the baseline backbone.')
-    p.add_argument('--provider',    default=HF_PROVIDER,
-                   help='HF InferenceClient provider (e.g. hf-inference).')
     p.add_argument('--max-tokens',  type=int, default=MAX_TOKENS,
                    help='Max generated tokens per API call.')
     p.add_argument('--ppo-ckpt',    default=None,
@@ -72,7 +70,7 @@ def load_spider(split: str, spider_dir: str) -> list[dict]:
         return json.load(f)
 
 
-def build_inference_client(provider: str, token: str):
+def build_inference_client(token: str):
     """
     Build a huggingface_hub InferenceClient for the baseline backbone.
 
@@ -82,7 +80,7 @@ def build_inference_client(provider: str, token: str):
 
     if not token:
         raise SystemExit("No HF token. Set HF_TOKEN in .env")
-    return InferenceClient(provider=provider, token=token)
+    return InferenceClient(token=token)
 
 
 # ── Per-method runners ─────────────────────────────────────────────────────
@@ -92,7 +90,6 @@ def run_full_regen(
     generate_fn,
     env:         NL2SQLEnv,
     max_retries: int,
-    log_every:   int = 50,
 ) -> tuple[list[str], list[int], list[int]]:
     """Run the full-regen baseline across all samples."""
     predictions:    list[str] = []
@@ -107,10 +104,14 @@ def run_full_regen(
         predictions.append(result['predicted_sql'])
         token_costs.append(result['token_cost'])
         attempt_counts.append(result['attempts'])
-
-        if (i + 1) % log_every == 0:
-            print(f"  [{i+1}/{len(samples)}] baseline running...")
-
+        
+        print(
+            f"[{i+1}/{len(samples)}] "
+            f"Token cost: {result['token_cost']} | "
+            f"Attempts: {result['attempts']} | "
+            f"Success: {result['predicted_sql'] == sample.get('gold_sql', sample.get('query'))}"
+        )
+        
     return predictions, token_costs, attempt_counts
 
 
@@ -189,7 +190,7 @@ def main():
     env = NL2SQLEnv(spider_dir=args.spider_dir)
 
     print(f"\nBaseline backbone (HF Inference API): {args.model}")
-    client      = build_inference_client(args.provider, HF_TOKEN)
+    client      = build_inference_client(HF_TOKEN)
     generate_fn = make_hf_api_generate_fn(client, args.model, max_tokens=args.max_tokens)
 
     print(f"\nRunning full-regen baseline (max_retries={args.max_retries})")
