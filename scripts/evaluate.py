@@ -30,15 +30,17 @@ for _p in (
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
-from env.env             import NL2SQLEnv                       # noqa: E402
-from eval.metrics        import execution_accuracy              # noqa: E402
-from baseline.full_regen import run_baseline                    # noqa: E402
+from env.env             import NL2SQLEnv
+from eval.metrics        import execution_accuracy
+from baseline.full_regen import make_hf_api_generate_fn, run_baseline
 
 
 # ── Defaults ───────────────────────────────────────────────────────────────
 
 DEFAULT_SPIDER_DIR = os.path.join(_REPO_ROOT, 'clause_ppo', 'data', 'spider')
-DEFAULT_MODEL_NAME = 'codellama/CodeLlama-7b-hf'
+DEFAULT_MODEL_NAME = 'qwen/qwen2.5-coder-1.5b'
+DEFAULT_PROVIDER   = 'hf-inference'
+DEFAULT_MAX_TOKENS = 500
 
 
 # ── CLI ────────────────────────────────────────────────────────────────────
@@ -52,7 +54,13 @@ def parse_args():
     p.add_argument('--spider-dir',  default=DEFAULT_SPIDER_DIR)
     p.add_argument('--max-retries', type=int, default=3)
     p.add_argument('--model',       default=DEFAULT_MODEL_NAME,
-                   help='HF model id or local checkpoint for the baseline backbone.')
+                   help='HF Inference API model id for the baseline backbone.')
+    p.add_argument('--provider',    default=DEFAULT_PROVIDER,
+                   help='HF InferenceClient provider (e.g. hf-inference).')
+    p.add_argument('--hf-token',    default=os.environ.get('HF_TOKEN'),
+                   help='HF API token. Falls back to the HF_TOKEN env var.')
+    p.add_argument('--max-tokens',  type=int, default=DEFAULT_MAX_TOKENS,
+                   help='Max generated tokens per API call.')
     p.add_argument('--ppo-ckpt',    default=None,
                    help='PPO actor checkpoint. PPO path is a stub today (see run_clause_ppo).')
     p.add_argument('--max-samples', type=int, default=None,
@@ -71,33 +79,27 @@ def load_spider(split: str, spider_dir: str) -> list[dict]:
         return json.load(f)
 
 
-def load_codellama(model_name: str):
+def build_inference_client(provider: str, token: str):
     """
-    Lazy HF imports — keeps the CLI script importable on machines that
-    don't have torch/transformers installed (e.g. eval-only laptops).
+    Build a huggingface_hub InferenceClient for the baseline backbone.
+
+    Lazy import — keeps the CLI importable on machines without huggingface_hub.
     """
-    import torch
-    from transformers import AutoModelForCausalLM, AutoTokenizer
+    from huggingface_hub import InferenceClient
 
-    tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=True)
-    if tokenizer.pad_token is None:
-        tokenizer.pad_token = tokenizer.eos_token
-
-    model = AutoModelForCausalLM.from_pretrained(
-        model_name,
-        torch_dtype=torch.bfloat16,
-        device_map='auto',
-    )
-    model.eval()
-    return model, tokenizer
+    if not token:
+        raise SystemExit(
+            "No HF token. Pass --hf-token or set the HF_TOKEN env var "
+            "(the baseline calls the HF Inference API)."
+        )
+    return InferenceClient(provider=provider, token=token)
 
 
 # ── Per-method runners ─────────────────────────────────────────────────────
 
 def run_full_regen(
     samples:     list[dict],
-    model,
-    tokenizer,
+    generate_fn,
     env:         NL2SQLEnv,
     max_retries: int,
     log_every:   int = 50,
@@ -109,7 +111,7 @@ def run_full_regen(
 
     for i, sample in enumerate(samples):
         result = run_baseline(
-            sample, model, tokenizer,
+            sample, generate_fn,
             max_retries=max_retries, env=env,
         )
         predictions.append(result['predicted_sql'])
@@ -200,12 +202,13 @@ def main():
 
     env = NL2SQLEnv(spider_dir=args.spider_dir)
 
-    print(f"\nLoading baseline backbone: {args.model}")
-    model, tokenizer = load_codellama(args.model)
+    print(f"\nBaseline backbone (HF Inference API): {args.model}")
+    client      = build_inference_client(args.provider, args.hf_token)
+    generate_fn = make_hf_api_generate_fn(client, args.model, max_tokens=args.max_tokens)
 
     print(f"\nRunning full-regen baseline (max_retries={args.max_retries})")
     preds, tokens, attempts = run_full_regen(
-        samples, model, tokenizer, env, args.max_retries,
+        samples, generate_fn, env, args.max_retries,
     )
 
     acc        = execution_accuracy(preds, samples, spider_dir=args.spider_dir)

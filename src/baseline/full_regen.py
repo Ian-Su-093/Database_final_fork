@@ -4,22 +4,32 @@ Full-regeneration baseline for NL2SQL evaluation.
 run_baseline(): generate full SQL from question + schema; retry up to
   ``max_retries`` if execution does not match gold.
 
-The prompt mirrors build_rewrite_prompt() in
-clause_ppo/src/training/ppo_loop.py (minus the [WRONG_SQL] / [TASK] sections)
-so the baseline and PPO actor are compared on the same input format.
+Generation is injected as a ``generate_fn`` so the loop is backend-agnostic.
+Any callable with this contract works:
 
-Scaffolded by Sam — Ian owns the final implementation per
-.claude/docs/INTERFACES.md.
+    generate_fn(prompt: str) -> (sql_text: str, n_input_tokens: int, n_output_tokens: int)
+
+make_hf_api_generate_fn() adapts a huggingface_hub InferenceClient
+(chat-completions) to that contract. The baseline backbone is
+Qwen2.5-Coder-1.5B served via the HF Inference API — a deliberately small,
+remote model. NOTE: this differs from the PPO actor (CodeLlama-7B, local),
+so the eval table compares a cheap API baseline against the trained model,
+not two configurations of the same backbone. See .claude/docs/PIPELINE.md.
+
+The prompt mirrors build_rewrite_prompt() in
+clause_ppo/src/training/ppo_loop.py (minus the [WRONG_SQL] section) so the
+baseline and PPO actor see the same input layout.
 """
 
 import os
+import re
 import sys
-from typing import Optional
+from typing import Callable, Optional
 
 # ── Make sibling packages importable ────────────────────────────────────────
-_REPO_ROOT       = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-_CLAUSE_PPO_SRC  = os.path.join(_REPO_ROOT, 'clause_ppo', 'src')
-_SRC_ROOT        = os.path.join(_REPO_ROOT, 'src')
+_REPO_ROOT      = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+_CLAUSE_PPO_SRC = os.path.join(_REPO_ROOT, 'clause_ppo', 'src')
+_SRC_ROOT       = os.path.join(_REPO_ROOT, 'src')
 for _p in (_CLAUSE_PPO_SRC, _SRC_ROOT):
     if _p not in sys.path:
         sys.path.insert(0, _p)
@@ -27,12 +37,15 @@ for _p in (_CLAUSE_PPO_SRC, _SRC_ROOT):
 from env.env import NL2SQLEnv, DEFAULT_SPIDER_DIR   # noqa: E402
 
 
+# ── Types ──────────────────────────────────────────────────────────────────
+
+# prompt -> (sql_text, n_input_tokens, n_output_tokens)
+GenerateFn = Callable[[str], tuple[str, int, int]]
+
+
 # ── Module-level defaults ──────────────────────────────────────────────────
 
-DEFAULT_MAX_NEW_TOKENS = 256
-# Matches ppo_config.yaml so the baseline samples at the same temperature as
-# the PPO actor — without sampling, max_retries is meaningless at T=0.
-DEFAULT_TEMPERATURE    = 0.7
+DEFAULT_MAX_TOKENS = 500   # matches the teammate's InferenceClient call
 
 
 # ── Public API ─────────────────────────────────────────────────────────────
@@ -51,31 +64,27 @@ def build_baseline_prompt(question: str, schema: str) -> str:
 
 
 def run_baseline(
-    sample:        dict,
-    model,
-    tokenizer,
-    max_retries:   int = 3,
-    env:           Optional[NL2SQLEnv] = None,
-    spider_dir:    str = DEFAULT_SPIDER_DIR,
-    tables:        Optional[dict] = None,
-    max_new_tokens: int = DEFAULT_MAX_NEW_TOKENS,
-    temperature:   float = DEFAULT_TEMPERATURE,
+    sample:      dict,
+    generate_fn: GenerateFn,
+    max_retries: int = 3,
+    env:         Optional[NL2SQLEnv] = None,
+    spider_dir:  str = DEFAULT_SPIDER_DIR,
+    tables:      Optional[dict] = None,
 ) -> dict:
     """
     Full-regen baseline for one Spider sample.
 
     Args:
-        sample:         Spider sample with ``question``, ``db_id``, and
-                        ``gold_sql`` / ``query``.
-        model:          HF causal-LM (CodeLlama-7B per ppo_config.yaml).
-        tokenizer:      matching HF tokenizer.
-        max_retries:    maximum generation attempts. Returns early on the
-                        first attempt whose execution matches gold.
-        env:            pre-instantiated NL2SQLEnv (recommended — avoids
-                        re-loading tables.json on every call). One is
-                        constructed from ``spider_dir`` / ``tables`` when None.
+        sample:      Spider sample with ``question``, ``db_id``, and
+                     ``gold_sql`` / ``query``.
+        generate_fn: callable ``prompt -> (sql, n_in, n_out)``. Build one with
+                     make_hf_api_generate_fn() for the HF Inference API.
+        max_retries: maximum generation attempts. Returns early on the first
+                     attempt whose execution matches gold.
+        env:         pre-instantiated NL2SQLEnv (recommended — avoids
+                     re-loading tables.json on every call). One is constructed
+                     from ``spider_dir`` / ``tables`` when None.
         spider_dir, tables: forwarded to NL2SQLEnv when ``env`` is None.
-        max_new_tokens, temperature: forwarded to ``model.generate``.
 
     Returns:
         ``{"predicted_sql": str, "token_cost": int, "attempts": int}``
@@ -93,11 +102,9 @@ def run_baseline(
 
     for _ in range(max_retries):
         attempts += 1
-        sql, tokens_used = _generate_sql(
-            model, tokenizer, prompt, max_new_tokens, temperature,
-        )
+        sql, n_in, n_out = generate_fn(prompt)
         predicted_sql = sql
-        token_cost   += tokens_used
+        token_cost   += n_in + n_out
 
         reward, _ = env.step(sql)
         if reward > 0:
@@ -110,41 +117,89 @@ def run_baseline(
     }
 
 
-# ── Helpers ────────────────────────────────────────────────────────────────
-
-def _generate_sql(
-    model,
-    tokenizer,
-    prompt: str,
-    max_new_tokens: int,
-    temperature: float,
-) -> tuple[str, int]:
+def make_hf_api_generate_fn(
+    client,
+    model:              str,
+    max_tokens:         int = DEFAULT_MAX_TOKENS,
+    fallback_tokenizer=None,
+) -> GenerateFn:
     """
-    Single generation call.
+    Adapt a huggingface_hub InferenceClient to the generate_fn contract.
+
+    Token counts come from the server's ``completion.usage`` when present.
+    If a provider omits usage, ``fallback_tokenizer`` (a HF tokenizer) is used
+    to count locally; with neither, we fail loudly rather than report 0.
+
+    Args:
+        client:             a huggingface_hub.InferenceClient.
+        model:              model id, e.g. 'qwen/qwen2.5-coder-1.5b'.
+        max_tokens:         max generated tokens per call.
+        fallback_tokenizer: optional HF tokenizer used only when the API
+                            response carries no usage stats.
 
     Returns:
-        (sql_string, total_tokens) where ``total_tokens`` is the count of
-        input prompt tokens plus newly generated tokens.
+        generate_fn(prompt) -> (sql_text, n_input_tokens, n_output_tokens).
     """
-    input_ids = tokenizer.encode(prompt, return_tensors='pt')
-    input_len = input_ids.shape[-1]
+    def generate_fn(prompt: str) -> tuple[str, int, int]:
+        completion = client.chat.completions.create(
+            model=model,
+            messages=[{'role': 'user', 'content': prompt}],
+            max_tokens=max_tokens,
+        )
+        raw_text = completion.choices[0].message.content or ''
+        n_in, n_out = _usage_tokens(completion, prompt, raw_text, fallback_tokenizer)
+        return _extract_sql(raw_text), n_in, n_out
 
-    device = getattr(model, 'device', None)
-    if device is not None:
-        input_ids = input_ids.to(device)
+    return generate_fn
 
-    do_sample  = temperature > 0.0
-    gen_kwargs = dict(
-        max_new_tokens=max_new_tokens,
-        do_sample=do_sample,
-        pad_token_id=tokenizer.pad_token_id or tokenizer.eos_token_id,
+
+# ── Helpers ────────────────────────────────────────────────────────────────
+
+_FENCE_PATTERN = re.compile(r'```(?:sql)?\s*(.*?)```', re.DOTALL | re.IGNORECASE)
+
+
+def _extract_sql(text: str) -> str:
+    """
+    Pull SQL out of a chat model's reply.
+
+    Chat models reliably wrap SQL in ```sql ...``` fences; the env executes the
+    raw string, so stripping the fence is required for a fair EX score. When no
+    fence is present, the trimmed text is returned unchanged.
+    """
+    text = text.strip()
+    match = _FENCE_PATTERN.search(text)
+    if match:
+        return match.group(1).strip()
+    return text
+
+
+def _usage_tokens(
+    completion,
+    prompt: str,
+    output_text: str,
+    fallback_tokenizer,
+) -> tuple[int, int]:
+    """
+    Resolve (input_tokens, output_tokens) for one API call.
+
+    Prefers the server's usage stats; falls back to a local tokenizer; raises
+    if neither is available so token_cost is never silently zero.
+    """
+    usage = getattr(completion, 'usage', None)
+    if usage is not None:
+        n_in  = getattr(usage, 'prompt_tokens', None)
+        n_out = getattr(usage, 'completion_tokens', None)
+        if n_in is not None and n_out is not None:
+            return n_in, n_out
+
+    if fallback_tokenizer is not None:
+        return (
+            len(fallback_tokenizer.encode(prompt)),
+            len(fallback_tokenizer.encode(output_text)),
+        )
+
+    raise RuntimeError(
+        "API response carries no usage stats and no fallback_tokenizer was "
+        "provided; cannot compute token_cost. Pass fallback_tokenizer="
+        "AutoTokenizer.from_pretrained(model) to make_hf_api_generate_fn()."
     )
-    if do_sample:
-        gen_kwargs['temperature'] = temperature
-
-    output        = model.generate(input_ids, **gen_kwargs)
-    generated_ids = output[0][input_len:]
-    output_len    = generated_ids.shape[-1]
-    sql           = tokenizer.decode(generated_ids, skip_special_tokens=True).strip()
-
-    return sql, input_len + output_len
