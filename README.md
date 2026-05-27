@@ -19,7 +19,7 @@ final/
 │   ├── data/
 │   │   ├── processed/    ← built datasets (corruption_dataset.json, etc.)
 │   │   └── spider/       ← Spider dataset (not committed)
-│   ├── scripts/          ← build_corruption_dataset.py, train_prm.py
+│   ├── scripts/          ← build_corruption_dataset.py, train_prm.py, base_line.py
 │   └── src/              ← data, models, training, utils
 ├── scripts/              ← entry points TBD (Sam)
 ├── src/                  ← env, eval TBD (Sam)
@@ -148,3 +148,81 @@ A drop in score between consecutive steps localises the faulty clause.
 | ~4,000 train examples | corruption dataset | PRM training (Phase 1) |
 | ~3,000 train examples | held out | PPO fine-tuning (Phase 2) |
 | dev set | ~1,034 | Evaluation only |
+
+---
+
+## Baseline
+
+`clause_ppo/scripts/base_line.py` is a minimal **Baseline 1** script: vanilla Qwen2.5-Coder generation via the Hugging Face Inference API, with no RL and no clause-level repair. Use it to verify API access and model output before wiring up full Spider evaluation.
+
+### Prerequisites
+
+1. A [Hugging Face account](https://huggingface.co/join) and an [access token](https://huggingface.co/settings/tokens) with **Inference** permissions.
+2. The `huggingface_hub` package (not listed in the root `requirements.txt`):
+
+```bash
+pip install huggingface_hub
+```
+
+Alternatively, set the token via environment variable and skip editing the file:
+
+```bash
+# Windows (PowerShell)
+$env:HF_TOKEN = "hf_..."
+
+# Linux / macOS
+export HF_TOKEN="hf_..."
+```
+
+### Configuration
+
+Open `clause_ppo/scripts/base_line.py` and update:
+
+| Setting | Default | Notes |
+|---------|---------|-------|
+| `token` | `"your-token-here"` | Replace with your HF token, or rely on `HF_TOKEN` / `huggingface-cli login` |
+| `model` | `qwen/qwen2.5-coder-1.5b` | Any HF-hosted chat model supported by the Inference API |
+| `messages` | Placeholder prompt | Should include the natural-language question and database schema for real NL2SQL |
+| `max_tokens` | `500` | Increase for longer SQL queries |
+
+The placeholder prompt is not Spider-aware. For a meaningful baseline run, replace `messages` with a prompt that includes `[QUESTION]`, schema, and an instruction to output SQL only.
+
+### Run
+
+From the repo root:
+
+```bash
+python clause_ppo/scripts/base_line.py
+```
+
+Or from `clause_ppo/`:
+
+```bash
+python scripts/base_line.py
+```
+
+On success, the script prints the model's generated SQL to stdout.
+
+### What this script does (and does not do)
+
+**Does:**
+
+- Calls `qwen/qwen2.5-coder-1.5b` through Hugging Face's hosted inference (`provider="hf-inference"`).
+- Serves as a smoke test that your token, network, and model choice work.
+
+**Does not (yet):**
+
+- Load Spider `dev.json` or execute predictions against the SQLite oracle.
+- Compute execution accuracy (EX) or other evaluation metrics.
+- Compare against **Baseline 2** (full query regeneration) or the clause-level PPO repair pipeline.
+
+Full dev-set evaluation will live in `scripts/evaluate.py` (see `.claude/docs/PIPELINE.md`). Extend `base_line.py` or replace it with a batch runner that iterates over Spider examples and scores EX before reporting baseline numbers.
+
+### Troubleshooting
+
+| Issue | Likely fix |
+|-------|------------|
+| `401 Unauthorized` | Invalid or missing HF token; set `HF_TOKEN` or run `huggingface-cli login` |
+| Model not found / gated | Accept the model license on its Hugging Face model page |
+| Empty or non-SQL output | Improve the prompt with explicit question + schema formatting |
+| Rate limits | Reduce call frequency; consider local inference with `transformers` instead of the API |
