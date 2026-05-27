@@ -186,9 +186,9 @@ generate_fn(prompt: str) -> (sql_text: str, n_input_tokens: int, n_output_tokens
 ```python
 from huggingface_hub import InferenceClient
 from baseline.full_regen import make_hf_api_generate_fn, run_baseline
-from config import HF_TOKEN, BASELINE_MODEL, HF_PROVIDER   # HF_TOKEN read from .env
+from config import HF_TOKEN, BASELINE_MODEL   # HF_TOKEN read from .env
 
-client      = InferenceClient(provider=HF_PROVIDER, token=HF_TOKEN)
+client      = InferenceClient(token=HF_TOKEN)
 generate_fn = make_hf_api_generate_fn(client, model=BASELINE_MODEL)
 
 result = run_baseline(sample, generate_fn, max_retries=3, env=env)
