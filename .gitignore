@@ -19,6 +19,9 @@ venv/
 # VS Code settings
 .vscode/
 
+# Secrets — keep real tokens local; .env.example is the committed template
+.env
+
 # Spider datasets
 **/spider/*
 !**/spider/README.md
