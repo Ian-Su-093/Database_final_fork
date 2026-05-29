@@ -203,14 +203,55 @@ result = run_baseline(sample, generate_fn, max_retries=3, env=env)
 - Chat replies wrapped in ```` ```sql ... ``` ```` fences are unwrapped before
   execution.
 
-> ⚠ **Backbone note:** the baseline uses Qwen-1.5B (remote API); the PPO actor
-> is CodeLlama-7B (local). The eval table compares a cheap API baseline vs the
-> trained model — see `.claude/docs/PIPELINE.md`.
+### With local inference (no API, no 504s)
+
+Same Qwen-1.5B model, run on-device. No HF token needed; the first call to
+`load_local_model` downloads the weights (~3 GB) into the HF cache
+(`~/.cache/huggingface/hub/`), then loads them onto GPU.
+
+```bash
+pip install torch transformers      # one-time, if not already in your venv
+```
+
+```python
+from baseline.full_regen import load_local_model, make_local_generate_fn, run_baseline
+from config import LOCAL_MODEL, LOCAL_DTYPE, LOCAL_DEVICE
+
+# First call: ~3 GB download from HF + load into GPU memory.
+# Subsequent calls: cached, load is instant.
+model, tokenizer = load_local_model(
+    model_id=LOCAL_MODEL,    # 'Qwen/Qwen2.5-Coder-1.5B-Instruct'
+    dtype=LOCAL_DTYPE,       # 'float16' (~3 GB VRAM) | 'bfloat16' | 'float32'
+    device=LOCAL_DEVICE,     # 'auto' (recommended) | 'cuda' | 'cpu'
+)
+generate_fn = make_local_generate_fn(model, tokenizer)
+
+result = run_baseline(sample, generate_fn, max_retries=3, env=env)
+```
+
+What `load_local_model` does under the hood:
+
+```python
+# from baseline/full_regen.py
+tokenizer = AutoTokenizer.from_pretrained(model_id)
+model     = AutoModelForCausalLM.from_pretrained(
+    model_id, dtype=torch.float16, device_map='auto',
+)
+```
+
+Both `from_pretrained` calls auto-download from the HF hub on first use.
+
+- Adjust precision / device in [`src/config.py`](config.py) (`LOCAL_DTYPE`,
+  `LOCAL_DEVICE`) — these are deliberately not CLI flags.
+- `device='auto'` lets HF spill layers to CPU if VRAM is tight (good safety
+  net on a 3050Ti laptop's 4 GB).
+- Token counts come straight from the tokenizer / generated ids — no
+  `fallback_tokenizer` needed.
 
 ### Adding another backend
 
-Write a `generate_fn` (e.g. a local `model.generate` wrapper, or the PPO actor
-once inference exists) and pass it straight to `run_baseline`.
+Write a `generate_fn` (e.g. the PPO actor once inference exists) and pass it
+straight to `run_baseline`.
 
 ---
 
@@ -224,11 +265,18 @@ copy `.env.example` to `.env` and set `HF_TOKEN`; `config.py` loads it on import
 ## Evaluation driver (`scripts/evaluate.py`)
 
 ```bash
-cp .env.example .env        # then set HF_TOKEN=...  (baseline calls the HF Inference API)
+# API backend (default) — set HF_TOKEN in .env first
+cp .env.example .env
 python scripts/evaluate.py --split dev --max-retries 3 --max-samples 20
+
+# Local backend — no API, no 504s. First run downloads ~3 GB weights.
+python scripts/evaluate.py --split dev --backend local --max-samples 20
 ```
 
 Runs the full-regen baseline over the split and prints the comparison table.
+Precision / device for `--backend local` come from [`src/config.py`](config.py)
+(`LOCAL_DTYPE`, `LOCAL_DEVICE`), not CLI flags.
+
 `--ppo-ckpt` is accepted but the PPO path raises `NotImplementedError` until
 Henry exposes an actor-loading inference entry point (see QUESTIONS.md).
 
