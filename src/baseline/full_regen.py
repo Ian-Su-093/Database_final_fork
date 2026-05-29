@@ -25,7 +25,7 @@ for _p in (_CLAUSE_PPO_SRC, _SRC_ROOT):
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
-from config import SPIDER_DIR, MAX_TOKENS, API_RETRIES, API_BACKOFF_SECS
+from config import SPIDER_DIR, MAX_TOKENS, TEMPERATURE, API_RETRIES, API_BACKOFF_SECS
 from env.env import NL2SQLEnv
 
 
@@ -109,6 +109,7 @@ def make_hf_api_generate_fn(
     client,
     model:              str,
     max_tokens:         int = MAX_TOKENS,
+    temperature:        float = TEMPERATURE,
     fallback_tokenizer=None,
     api_retries:        int = API_RETRIES,
     backoff_secs:       float = API_BACKOFF_SECS,
@@ -133,6 +134,7 @@ def make_hf_api_generate_fn(
             model=model,
             messages=[{'role': 'user', 'content': prompt}],
             max_tokens=max_tokens,
+            temperature=temperature,
         )
         raw_text = completion.choices[0].message.content or ''
         n_in, n_out = _usage_tokens(completion, prompt, raw_text, fallback_tokenizer)

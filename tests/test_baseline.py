@@ -71,8 +71,11 @@ class _Completions:
         self._i           = 0
         self.calls        = []
 
-    def create(self, model, messages, max_tokens):
-        self.calls.append({'model': model, 'messages': messages, 'max_tokens': max_tokens})
+    def create(self, model, messages, max_tokens, **kwargs):
+        self.calls.append({
+            'model': model, 'messages': messages,
+            'max_tokens': max_tokens, **kwargs,
+        })
         c = self._completions[self._i]
         self._i += 1
         return c
@@ -112,7 +115,7 @@ class _ScriptedCompletions:
         self._i      = 0
         self.calls   = 0
 
-    def create(self, model, messages, max_tokens):
+    def create(self, model, messages, max_tokens, **kwargs):
         self.calls += 1
         item = self._script[self._i]
         self._i += 1
@@ -224,6 +227,17 @@ def test_api_adapter_passes_model_and_wraps_prompt():
     assert call['model']      == 'qwen/qwen2.5-coder-1.5b'
     assert call['max_tokens'] == 321
     assert call['messages']   == [{'role': 'user', 'content': 'MY_PROMPT'}]
+
+
+def test_api_adapter_forwards_temperature():
+    # Pin temperature explicitly so Accuracy@N retries are independent samples,
+    # not whatever the provider happens to default to.
+    completions = _Completions([_Completion('SELECT 1', usage=_Usage(1, 1))])
+    client = FakeClient([])
+    client.chat.completions = completions
+    gen = make_hf_api_generate_fn(client, model='m', temperature=0.42)
+    gen("p")
+    assert completions.calls[0]['temperature'] == 0.42
 
 
 def test_api_adapter_falls_back_to_tokenizer_when_no_usage():
