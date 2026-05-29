@@ -18,6 +18,7 @@ REWARD_WRONG   = -1.0
 BASELINE_MODEL = 'Qwen/Qwen2.5-Coder-1.5B-Instruct'
 MAX_TOKENS     = 500      # max generated tokens per API call
 MAX_RETRIES    = 3        # full-regen attempts per sample (wrong-SQL retries)
+TEMPERATURE    = 0.9      # baseline randomness (0.0 = greedy, 1.0 = high variance)
 
 # ── API retry policy ─────────────────────────────────────────────────────────
 API_RETRIES      = 4      # attempts per API call before giving up
