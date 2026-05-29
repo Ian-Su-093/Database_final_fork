@@ -72,36 +72,51 @@ class NL2SQLEnv:
         """
 ```
 
-### Minimal episode loop
+### Episode loop (from `ppo_loop.py`)
+
+The training loop lives entirely in Henry's `ppo_loop.py`. `env` is called like this:
 
 ```python
 from env.env import NL2SQLEnv
-from reward.model import score_clause          # Henry's module
-from data.loader import load_spider            # Ian's module
+from training.ppo_loop import get_corrupted_sample, build_rewrite_prompt, compute_reward
 
-env     = NL2SQLEnv()
-samples = load_spider("train")[4000:]          # PPO split
+env = NL2SQLEnv(spider_dir=spider_dir, tables=tables_dict)
 
-for sample in samples:
+for sample in ppo_samples:                        # train_spider[4000:]
+    # 1. Corruption engine tells us which clause is wrong (no PRM needed here)
+    corruption = get_corrupted_sample(sample, tables_dict)
+    if corruption is None:
+        continue
+    wrong_sql, faulty_clause = corruption          # e.g. wrong_sql, "where"
+
+    # 2. Env provides the initial state (question + formatted schema)
     state = env.reset(sample)
-    # state["schema"] goes into the CodeLlama prompt
 
-    # Henry's actor generates one clause at a time:
-    clause_scores = {}
-    for clause_name, clause_text in generated_clauses.items():
-        context = {
-            "question":        state["question"],
-            "schema":          state["schema"],
-            "clauses_so_far":  clause_scores,
-        }
-        clause_scores[clause_name] = score_clause(clause_name, clause_text, context)
+    # 3. Build prompt → CodeLlama rewrites the full SQL
+    prompt = build_rewrite_prompt(
+        state['question'], state['schema'],
+        wrong_sql, faulty_clause, clause_names,
+    )
+    rewritten_sql = ppo_trainer.generate(prompt)   # simplified
 
-    faulty_clause = env.get_faulty_clause(clause_scores)
-    # CodeLlama rewrites faulty_clause → reconstruct full_sql ...
+    # 4. Terminal reward from env (single call per episode)
+    terminal, done = env.step(rewritten_sql)       # +1.0 or -1.0
 
-    reward, done = env.step(full_sql)
-    # reward fed into PPO update
+    # 5. Dense reward from ClausePRM (scored once on the prefix, not per-clause)
+    prm_score = prm(build_prm_prompt(...))         # float in [0, 1]
+
+    reward = compute_reward(terminal, prm_score, alpha=0.5)
+    # → ppo_trainer.step(...)
 ```
+
+**Note on `get_faulty_clause`:** not called during training — the corruption engine
+already knows the faulty clause. It is used in `validate_env.py` (integration test
+with a mock PRM) and will be relevant at inference time when no corruption engine
+is available.
+
+**Note on `score_clause`:** there is no per-clause scoring loop during generation.
+The PRM scores the corrupted prefix once after generation (see `build_prm_prompt`).
+Clause scoring during autoregressive generation is a future extension.
 
 ### Constructor options
 
@@ -156,12 +171,76 @@ diagnosis; use EX as the primary metric.
 
 ---
 
+## Baseline (`src/baseline/full_regen.py`)
+
+Full-SQL regeneration baseline for the eval table. `run_baseline` is
+backend-agnostic — it takes a `generate_fn` rather than a model, so any
+backend works as long as it satisfies the contract:
+
+```python
+generate_fn(prompt: str) -> (sql_text: str, n_input_tokens: int, n_output_tokens: int)
+```
+
+### With the HF Inference API (Qwen2.5-Coder-1.5B)
+
+```python
+from huggingface_hub import InferenceClient
+from baseline.full_regen import make_hf_api_generate_fn, run_baseline
+from config import HF_TOKEN, BASELINE_MODEL   # HF_TOKEN read from .env
+
+client      = InferenceClient(token=HF_TOKEN)
+generate_fn = make_hf_api_generate_fn(client, model=BASELINE_MODEL)
+
+result = run_baseline(sample, generate_fn, max_retries=3, env=env)
+# {"predicted_sql": ..., "token_cost": ..., "attempts": ..., "success": ...}
+# success = execution-correct (matched gold within max_retries), NOT string equality
+```
+
+- **`attempts`** — retry-loop count; backend-independent.
+- **`token_cost`** — cumulative (input + output) tokens across all attempts.
+  Pulled from the server's `completion.usage`; pass `fallback_tokenizer=` to
+  `make_hf_api_generate_fn` if your provider omits usage stats.
+- Chat replies wrapped in ```` ```sql ... ``` ```` fences are unwrapped before
+  execution.
+
+> ⚠ **Backbone note:** the baseline uses Qwen-1.5B (remote API); the PPO actor
+> is CodeLlama-7B (local). The eval table compares a cheap API baseline vs the
+> trained model — see `.claude/docs/PIPELINE.md`.
+
+### Adding another backend
+
+Write a `generate_fn` (e.g. a local `model.generate` wrapper, or the PPO actor
+once inference exists) and pass it straight to `run_baseline`.
+
+---
+
+## Configuration & secrets
+
+Shared defaults (Spider path, execution oracle, baseline backbone) live in
+[`src/config.py`](config.py). The HF token is **not** a constant or a CLI flag —
+copy `.env.example` to `.env` and set `HF_TOKEN`; `config.py` loads it on import.
+`.env` is gitignored.
+
+## Evaluation driver (`scripts/evaluate.py`)
+
+```bash
+cp .env.example .env        # then set HF_TOKEN=...  (baseline calls the HF Inference API)
+python scripts/evaluate.py --split dev --max-retries 3 --max-samples 20
+```
+
+Runs the full-regen baseline over the split and prints the comparison table.
+`--ppo-ckpt` is accepted but the PPO path raises `NotImplementedError` until
+Henry exposes an actor-loading inference entry point (see QUESTIONS.md).
+
+---
+
 ## Running the tests
 
 ```bash
 source venv/bin/activate
 pip install pytest
-python -m pytest tests/test_env.py tests/test_metrics.py -v
+python -m pytest tests/ -v
 ```
 
-33 tests, all green, no GPU required.
+`test_env`, `test_metrics`, `test_baseline`, `test_evaluate` — all green, no
+GPU and no API calls required (model/tokenizer/env/client are all faked).

@@ -15,15 +15,21 @@ NL2SQL clause-level repair via PPO. Given a wrong SQL query, identify the faulty
 ```
 final/
 ├── clause_ppo/           ← main training package
-│   ├── configs/          ← training configs (prm_config.yaml)
+│   ├── configs/          ← training configs (ppo_config.yaml, prm_config.yaml)
 │   ├── data/
 │   │   ├── processed/    ← built datasets (corruption_dataset.json, etc.)
 │   │   └── spider/       ← Spider dataset (not committed)
-│   ├── scripts/          ← build_corruption_dataset.py, train_prm.py
+│   ├── scripts/          ← build_corruption_dataset.py, train_prm.py, train_ppo.py
 │   └── src/              ← data, models, training, utils
-├── scripts/              ← entry points TBD (Sam)
-├── src/                  ← env, eval TBD (Sam)
+├── scripts/
+│   └── evaluate.py       ← baseline vs PPO comparison table (Sam)
+├── src/                  ← Sam's eval pipeline
+│   ├── config.py         ← shared constants + .env loader
+│   ├── env/              ← NL2SQLEnv (RL environment)
+│   ├── eval/             ← execution_accuracy, partial_match
+│   └── baseline/         ← full-regen baseline (injectable generate_fn)
 ├── tests/                ← test suite
+├── .env.example          ← copy to .env, set HF_TOKEN
 └── requirements.txt
 ```
 
@@ -32,6 +38,9 @@ final/
 ```bash
 python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
+
+# HF token for the baseline backbone (HF Inference API)
+cp .env.example .env          # then edit .env and set HF_TOKEN=hf_...
 ```
 
 ## Spider Dataset
@@ -42,6 +51,41 @@ unzip spider.zip
 mv spider_data clause_ppo/data/spider
 rm spider.zip
 rm -rf __MACOSX/
+```
+
+---
+
+## Evaluation
+
+Compare the full-regeneration baseline against clause-level PPO on Spider:
+
+```bash
+python scripts/evaluate.py --split dev --max-samples 20
+```
+
+Output (Accuracy@N where N = `--max-retries`, default 3):
+
+| Method     | Accuracy@3 | Avg Token Cost |
+|------------|-----------:|---------------:|
+| Full regen |          ? |              ? |
+| Clause PPO |          ? |              ? |
+
+- **Baseline backbone:** `Qwen/Qwen2.5-Coder-1.5B-Instruct` via the HF Inference
+  API (Featherless AI provider). A small remote model — intentionally different
+  from the PPO actor (CodeLlama-7B, local), so the table contrasts a cheap API
+  baseline against the trained model. See `.claude/docs/PIPELINE.md`.
+- **Token:** read from `HF_TOKEN` in `.env` (gitignored); never a CLI flag.
+- **Clause PPO column** needs `--ppo-ckpt PATH`, but currently raises
+  `NotImplementedError` until the PPO actor exposes an inference entry point
+  (see `.claude/docs/QUESTIONS.md`).
+
+Flags: `--split {dev,train}`, `--max-retries N`, `--model ID`, `--max-tokens N`,
+`--max-samples N`, `--output preds.json`.
+
+Run the test suite (no GPU or API calls required — backends are faked):
+
+```bash
+python -m pytest tests/ -v
 ```
 
 ---

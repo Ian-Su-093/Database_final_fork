@@ -1,51 +1,34 @@
 # Open Questions & Decisions Log
 
-Format: **[open]** / **[resolved]** question — answer
+---
+
+## Open
+
+**[open]** `evaluate.py`: how to run RL inference at eval time?
+Does Henry expose a function like `run_ppo_inference(sample, model, tokenizer)`
+or does Sam call `ppo_trainer.generate()` directly? `run_clause_ppo()` in
+`evaluate.py` raises NotImplementedError until this exists.
+
+**[open]** Multiple wrong clauses: `get_corrupted_sample()` corrupts exactly one clause.
+What if the model generates SQL with multiple wrong clauses? (Less urgent — corruption
+engine handles training, model output only appears at eval time.)
 
 ---
 
-## Episode Initialization
-
-**[open]** When CodeLlama's initial output is already correct, do we skip the episode or still run it?
-
-**[open]** Does Henry own the prompt template for CodeLlama's SQL generation, or is it shared?
-
----
-
-## Faulty Clause Identification
-
-**[resolved]** Reward model scores each clause right after it is generated (not after full SQL). Score ∈ [0,1], lower = more likely wrong. No SQL execution involved — model confidence only.
-
-**[open]** What happens when multiple clauses are wrong? Fix only the lowest-scoring one per episode, or iterate?
-
----
-
-## Interfaces (see INTERFACES.md)
-
-**[open]** Ian: does `parse_clauses()` return a simple dict `{clause_name: text}`?
-
-**[open]** Henry/Sam: who owns the outer PPO training loop — does Henry's PPOTrainer call `env.step()`, or does Sam's pipeline call Henry's trainer?
-
----
-
-## Reward Shaping
-
-**[open]** Sparse reward (+1/0) may be insufficient — consider adding a small positive reward for queries that are executable but produce wrong results, to mitigate sparse reward.
-
-**[open]** Partial credit for "close" wrong answers: how to define closeness? Options include per-clause F1, result-set overlap, or edit distance.
-
----
-
-## Decisions Log
+## Resolved
 
 | Date | Decision | Rationale |
 |------|----------|-----------|
-| 2026-05 | Spider over BIRD | Simpler setup, standard baseline comparison |
-| 2026-05 | Option B episode init | Training distribution matches inference |
-| 2026-05 | Skip Option A warm-up | Not enough time; add as ablation if time permits |
-| 2026-05 | 4000/3000 data split | Prevent reward model from leaking gold answers into PPO |
-| 2026-05 | Reward model = dense per-clause signal | Clause scored independently after generation, float ∈ [0,1] |
-| 2026-05 | Executor = sparse final signal | Sam's env.step() called once per episode with full SQL |
-| 2026-05 | GPU: RTX 4090 | Henry's machine; determines VRAM budget (~24 GB) |
-| 2026-05 | Model: CodeLlama-7B | Replaces Qwen2.5-Coder; fits RTX 4090 VRAM |
-| 2026-05 | Reward shaping: +1/-1 | Partial credit and executable-but-wrong reward under consideration |
+| 2026-05 | Spider over BIRD | Simpler setup, standard baseline |
+| 2026-05 | Data split: train[0:4000] PRM, train[4000:] PPO | Prevent reward model leaking into PPO |
+| 2026-05 | Episode init: corruption engine, NOT Qwen output | ppo_loop.py confirmed — get_corrupted_sample() |
+| 2026-05 | env.step() takes full SQL, not clause text | Confirmed from ppo_loop.py line 332 |
+| 2026-05 | Henry owns entire PPO loop | ppo_loop.py is self-contained, Sam is not the outer loop |
+| 2026-05 | Reward = terminal + alpha * prm_score | compute_reward() in ppo_loop.py |
+| 2026-05 | GPU: RTX 4090, WSL2 | Henry's machine |
+| 2026-05 | Baseline: full query regeneration, max_retries configurable | run_baseline() in src/baseline/full_regen.py |
+| 2026-05 | Baseline backbone: Qwen2.5-Coder-1.5B via HF Inference API | Teammate's API caller; cheap remote baseline vs trained CodeLlama-7B — comparison mixes model-size + method, accepted as a deliberate framing |
+| 2026-05 | run_baseline takes injected generate_fn, not (model, tokenizer) | Decouples retry loop from backend; API + local both satisfy `prompt -> (sql, n_in, n_out)` |
+| 2026-05 | Baseline prompt format = build_baseline_prompt (mirrors build_rewrite_prompt) | [QUESTION][SCHEMA][SQL] header matches the actor for comparable input tokens |
+| 2026-05 | Token cost from server completion.usage (fallback: local tokenizer) | InferenceClient returns prompt/completion tokens; fail loudly if neither available |
+| 2026-05 | Metric: Accuracy@N + avg token cost (input+output) | evaluate.py outputs comparison table |

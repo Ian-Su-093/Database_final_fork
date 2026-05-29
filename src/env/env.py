@@ -15,22 +15,20 @@ import os
 import sys
 from typing import Optional
 
-# ── Make clause_ppo/src importable for utils.execution and data.clause_splitter ──
-_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# ── Make src/ and clause_ppo/src importable (config + Henry's utils) ─────────
+_REPO_ROOT      = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+_SRC            = os.path.join(_REPO_ROOT, 'src')
 _CLAUSE_PPO_SRC = os.path.join(_REPO_ROOT, 'clause_ppo', 'src')
-if _CLAUSE_PPO_SRC not in sys.path:
-    sys.path.insert(0, _CLAUSE_PPO_SRC)
+for _p in (_SRC, _CLAUSE_PPO_SRC):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
 
-from utils.execution import queries_produce_same_result   # noqa: E402
-from data.clause_splitter import schema_to_string         # noqa: E402
+from config import SPIDER_DIR, TIMEOUT_SECS, REWARD_CORRECT, REWARD_WRONG  # noqa: E402
+from utils.execution import queries_produce_same_result                   # noqa: E402
+from data.clause_splitter import schema_to_string                         # noqa: E402
 
-
-# ── Module-level defaults ───────────────────────────────────────────────────
-
-DEFAULT_SPIDER_DIR   = os.path.join(_REPO_ROOT, 'clause_ppo', 'data', 'spider')
-DEFAULT_TIMEOUT_SECS = 5.0
-REWARD_CORRECT       = +1.0
-REWARD_WRONG         = -1.0
+# Back-compat alias — external code may import DEFAULT_SPIDER_DIR from here.
+DEFAULT_SPIDER_DIR = SPIDER_DIR
 
 
 class NL2SQLEnv:
@@ -38,9 +36,9 @@ class NL2SQLEnv:
 
     def __init__(
         self,
-        spider_dir: str = DEFAULT_SPIDER_DIR,
+        spider_dir: str = SPIDER_DIR,
         tables: Optional[dict] = None,
-        timeout_secs: float = DEFAULT_TIMEOUT_SECS,
+        timeout_secs: float = TIMEOUT_SECS,
     ):
         """
         Args:

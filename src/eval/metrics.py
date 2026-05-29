@@ -13,21 +13,19 @@ import sys
 from collections import Counter
 from typing import Sequence
 
-# ── Reuse the same SQLite execution oracle as the env ──────────────────────
-_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# ── Make src/ and clause_ppo/src importable (config + Henry's oracle) ───────
+_REPO_ROOT      = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+_SRC            = os.path.join(_REPO_ROOT, 'src')
 _CLAUSE_PPO_SRC = os.path.join(_REPO_ROOT, 'clause_ppo', 'src')
-if _CLAUSE_PPO_SRC not in sys.path:
-    sys.path.insert(0, _CLAUSE_PPO_SRC)
+for _p in (_SRC, _CLAUSE_PPO_SRC):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
 
-from utils.execution import queries_produce_same_result   # noqa: E402
+from config import SPIDER_DIR, TIMEOUT_SECS, CLAUSE_KEYWORDS   # noqa: E402
+from utils.execution import queries_produce_same_result        # noqa: E402
 
 
 # ── Module-level constants ─────────────────────────────────────────────────
-
-DEFAULT_SPIDER_DIR   = os.path.join(_REPO_ROOT, 'clause_ppo', 'data', 'spider')
-DEFAULT_TIMEOUT_SECS = 5.0
-
-CLAUSE_KEYWORDS = ['SELECT', 'FROM', 'WHERE', 'GROUP BY', 'HAVING', 'ORDER BY', 'LIMIT']
 
 # Multi-word keywords first so the regex prefers GROUP BY over GROUP.
 _CLAUSE_PATTERN = re.compile(
@@ -41,8 +39,8 @@ _CLAUSE_PATTERN = re.compile(
 def execution_accuracy(
     predictions: Sequence[str],
     samples: Sequence[dict],
-    spider_dir: str = DEFAULT_SPIDER_DIR,
-    timeout_secs: float = DEFAULT_TIMEOUT_SECS,
+    spider_dir: str = SPIDER_DIR,
+    timeout_secs: float = TIMEOUT_SECS,
 ) -> float:
     """
     Standard Spider EX metric.
