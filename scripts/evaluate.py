@@ -1,18 +1,21 @@
 #!/usr/bin/env python3
 """
-Evaluate baseline (full regeneration) and PPO (clause-level repair) on Spider.
+Evaluate baseline (full regeneration), Plan B (ClausePRM), and PPO (clause-level repair) on Spider.
 
 Outputs a markdown comparison table:
 
-    | Method     | Accuracy@N | Avg Token Cost |
-    | Full regen |    ?       |      ?         |
-    | Clause PPO |    ?       |      ?         |
+    | Method        | Accuracy@N | Avg Token Cost |
+    | Full regen    |    ?       |      ?         |
+    | Plan B (PRM)  |    ?       |      ?         |
+    | Clause PPO    |    ?       |      ?         |
 
+Plan B is the pure reward model approach (ClausePRM + Best-of-N).
 PPO inference is a stub today — see run_clause_ppo() and QUESTIONS.md.
 
 Usage:
     python scripts/evaluate.py --split dev
     python scripts/evaluate.py --split dev --max-retries 3 --max-samples 20
+    python scripts/evaluate.py --split dev --plan-b-ckpt clause_ppo/results/prm_checkpoints/best_checkpoint
     python scripts/evaluate.py --split dev --ppo-ckpt clause_ppo/results/ppo_checkpoints/ep_3000
 """
 
@@ -54,6 +57,8 @@ def parse_args():
                    help='Max generated tokens per API call.')
     p.add_argument('--ppo-ckpt',    default=None,
                    help='PPO actor checkpoint. PPO path is a stub today (see run_clause_ppo).')
+    p.add_argument('--plan-b-ckpt', default=None,
+                   help='ClausePRM checkpoint for Plan B inference (pure reward model approach).')
     p.add_argument('--max-samples', type=int, default=None,
                    help='Truncate the split for a quick smoke run.')
     p.add_argument('--output',      default=None,
@@ -127,6 +132,28 @@ def run_clause_ppo(
         "PPO inference is not implemented. ppo_loop.py has train_ppo() but no "
         "actor-loading / generation entry point. Ask Henry to add a "
         "run_ppo_inference(sample, model, tokenizer) -> dict before passing --ppo-ckpt."
+    )
+
+
+def run_plan_b(
+    samples:     list[dict],
+    prm_ckpt:    str,
+    max_retries: int,
+) -> tuple[list[str], list[int], list[int]]:
+    """
+    Run Plan B inference: ClausePRM + Best-of-N clause repair.
+    
+    Pure reward model approach (no RL training):
+    - Uses trained ClausePRM to identify faulty clauses
+    - Generates repair candidates with oracle selection
+    """
+    from baseline.plan_b_inference import run_plan_b_inference
+    
+    return run_plan_b_inference(
+        samples=samples,
+        prm_ckpt=prm_ckpt,
+        max_retries=max_retries,
+        limit=None
     )
 
 
@@ -217,6 +244,22 @@ def main():
             })
         except NotImplementedError as e:
             print(f"  Skipped — {e}")
+
+    if args.plan_b_ckpt is not None:
+        print(f"\nRunning Plan B (ClausePRM + Best-of-N) (--plan-b-ckpt {args.plan_b_ckpt})")
+        try:
+            plan_b_preds, plan_b_tokens, _ = run_plan_b(
+                samples, args.plan_b_ckpt, args.max_retries,
+            )
+            plan_b_acc = execution_accuracy(plan_b_preds, samples, spider_dir=args.spider_dir)
+            plan_b_avg = sum(plan_b_tokens) / len(plan_b_tokens) if plan_b_tokens else 0.0
+            rows.append({
+                'method':     'Plan B (PRM)',
+                'accuracy':   plan_b_acc,
+                'avg_tokens': plan_b_avg,
+            })
+        except Exception as e:
+            print(f"  Plan B failed — {e}")
 
     print_table(rows, n=args.max_retries)
 
