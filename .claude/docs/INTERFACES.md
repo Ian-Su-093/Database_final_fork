@@ -90,7 +90,8 @@ def run_baseline(
     tables: dict = None,
 ) -> dict:
     """
-    Returns: {"predicted_sql": str, "token_cost": int, "attempts": int}
+    Returns: {"predicted_sql": str, "token_cost": int, "attempts": int, "success": bool}
+      success    = execution correctness (matched gold within max_retries), NOT string equality.
       token_cost = cumulative (input + output) tokens across all attempts.
     """
 

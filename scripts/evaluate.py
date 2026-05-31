@@ -13,6 +13,7 @@ PPO inference is a stub today — see run_clause_ppo() and QUESTIONS.md.
 Usage:
     python scripts/evaluate.py --split dev
     python scripts/evaluate.py --split dev --max-retries 3 --max-samples 20
+    python scripts/evaluate.py --split dev --backend local --max-samples 20
     python scripts/evaluate.py --split dev --ppo-ckpt clause_ppo/results/ppo_checkpoints/ep_3000
 """
 
@@ -32,9 +33,13 @@ for _p in (
 
 from env.env             import NL2SQLEnv
 from eval.metrics        import execution_accuracy
-from baseline.full_regen import make_hf_api_generate_fn, run_baseline
+from baseline.full_regen import (
+    make_hf_api_generate_fn, make_local_generate_fn, load_local_model,
+    run_baseline,
+)
 from config import (
     SPIDER_DIR, BASELINE_MODEL, MAX_TOKENS, MAX_RETRIES, HF_TOKEN,
+    LOCAL_MODEL, LOCAL_DTYPE, LOCAL_DEVICE,
 )
 
 
@@ -48,10 +53,14 @@ def parse_args():
     p.add_argument('--split',       default='dev', choices=['dev', 'train'])
     p.add_argument('--spider-dir',  default=SPIDER_DIR)
     p.add_argument('--max-retries', type=int, default=MAX_RETRIES)
-    p.add_argument('--model',       default=BASELINE_MODEL,
-                   help='HF Inference API model id for the baseline backbone.')
+    p.add_argument('--backend',     default='api', choices=['api', 'local'],
+                   help='Where the baseline backbone runs. '
+                        'api = HF Inference API; local = download weights and run on this machine.')
+    p.add_argument('--model',       default=None,
+                   help='Override the backbone model id. '
+                        f'Defaults: api={BASELINE_MODEL}, local={LOCAL_MODEL}.')
     p.add_argument('--max-tokens',  type=int, default=MAX_TOKENS,
-                   help='Max generated tokens per API call.')
+                   help='Max generated tokens per call.')
     p.add_argument('--ppo-ckpt',    default=None,
                    help='PPO actor checkpoint. PPO path is a stub today (see run_clause_ppo).')
     p.add_argument('--max-samples', type=int, default=None,
@@ -81,6 +90,36 @@ def build_inference_client(token: str):
     if not token:
         raise SystemExit("No HF token. Set HF_TOKEN in .env")
     return InferenceClient(token=token)
+
+
+def build_generate_fn(args):
+    """
+    Wire a generate_fn for the chosen backend.
+
+    Returns ``(generate_fn, model_id)`` so main() can log which backbone ran.
+    Imports for the local backend (torch, transformers) are deferred inside
+    load_local_model — the API path stays light.
+    """
+    if args.backend == 'api':
+        model_id = args.model or BASELINE_MODEL
+        print(f"\nBaseline backbone (HF Inference API): {model_id}")
+        client = build_inference_client(HF_TOKEN)
+        return (
+            make_hf_api_generate_fn(client, model_id, max_tokens=args.max_tokens),
+            model_id,
+        )
+
+    # backend == 'local'
+    model_id = args.model or LOCAL_MODEL
+    print(f"\nBaseline backbone (local, dtype={LOCAL_DTYPE}, device={LOCAL_DEVICE}): {model_id}")
+    print("  loading weights (first run downloads ~3 GB) ...")
+    model, tokenizer = load_local_model(
+        model_id=model_id, dtype=LOCAL_DTYPE, device=LOCAL_DEVICE,
+    )
+    return (
+        make_local_generate_fn(model, tokenizer, max_tokens=args.max_tokens),
+        model_id,
+    )
 
 
 # ── Per-method runners ─────────────────────────────────────────────────────
@@ -189,9 +228,7 @@ def main():
 
     env = NL2SQLEnv(spider_dir=args.spider_dir)
 
-    print(f"\nBaseline backbone (HF Inference API): {args.model}")
-    client      = build_inference_client(HF_TOKEN)
-    generate_fn = make_hf_api_generate_fn(client, args.model, max_tokens=args.max_tokens)
+    generate_fn, _ = build_generate_fn(args)
 
     print(f"\nRunning full-regen baseline (max_retries={args.max_retries})")
     preds, tokens, attempts = run_full_regen(

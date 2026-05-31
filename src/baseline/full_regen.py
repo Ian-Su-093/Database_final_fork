@@ -25,7 +25,10 @@ for _p in (_CLAUSE_PPO_SRC, _SRC_ROOT):
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
-from config import SPIDER_DIR, MAX_TOKENS, API_RETRIES, API_BACKOFF_SECS
+from config import (
+    SPIDER_DIR, MAX_TOKENS, TEMPERATURE, API_RETRIES, API_BACKOFF_SECS,
+    LOCAL_MODEL, LOCAL_DTYPE, LOCAL_DEVICE,
+)
 from env.env import NL2SQLEnv
 
 
@@ -109,6 +112,7 @@ def make_hf_api_generate_fn(
     client,
     model:              str,
     max_tokens:         int = MAX_TOKENS,
+    temperature:        float = TEMPERATURE,
     fallback_tokenizer=None,
     api_retries:        int = API_RETRIES,
     backoff_secs:       float = API_BACKOFF_SECS,
@@ -133,6 +137,7 @@ def make_hf_api_generate_fn(
             model=model,
             messages=[{'role': 'user', 'content': prompt}],
             max_tokens=max_tokens,
+            temperature=temperature,
         )
         raw_text = completion.choices[0].message.content or ''
         n_in, n_out = _usage_tokens(completion, prompt, raw_text, fallback_tokenizer)
@@ -151,6 +156,85 @@ def make_hf_api_generate_fn(
                 time.sleep(wait)
         # Unreachable: the loop either returns or raises.
         raise RuntimeError("retry loop exited without returning")
+
+    return generate_fn
+
+
+def load_local_model(
+    model_id: str = LOCAL_MODEL,
+    dtype:    str = LOCAL_DTYPE,
+    device:   str = LOCAL_DEVICE,
+):
+    """
+    Download (if needed) and load a HF causal-LM for local inference.
+
+    Returns ``(model, tokenizer)`` ready to pass into make_local_generate_fn().
+    Heavy imports (torch, transformers) are deferred to this call so the rest
+    of the module — including the unit tests — does not require them.
+
+    Args:
+        model_id: HF repo id, e.g. 'Qwen/Qwen2.5-Coder-1.5B-Instruct'.
+        dtype:    'float16' | 'bfloat16' | 'float32'.
+        device:   'auto' lets HF spread layers across GPU+CPU when VRAM is
+                  tight (3050Ti laptop, 4 GB). Use 'cuda' to force GPU.
+    """
+    import torch
+    from transformers import AutoModelForCausalLM, AutoTokenizer
+
+    torch_dtype = {
+        'float16':  torch.float16,
+        'bfloat16': torch.bfloat16,
+        'float32':  torch.float32,
+    }[dtype]
+
+    tokenizer = AutoTokenizer.from_pretrained(model_id)
+    model = AutoModelForCausalLM.from_pretrained(
+        model_id,
+        dtype=torch_dtype,
+        device_map=device,
+    )
+    model.eval()
+    return model, tokenizer
+
+
+def make_local_generate_fn(
+    model,
+    tokenizer,
+    max_tokens:  int   = MAX_TOKENS,
+    temperature: float = TEMPERATURE,
+) -> GenerateFn:
+    """
+    Adapt a local HF causal-LM + tokenizer to the generate_fn contract.
+
+    Token counts are exact (input = tokenized prompt length, output =
+    number of generated ids), so no fallback tokenizer is needed.
+
+    The chat template is applied when available (Instruct models); raw text
+    is used otherwise.
+    """
+    def generate_fn(prompt: str) -> tuple[str, int, int]:
+        chat_text = _apply_chat_template(tokenizer, prompt)
+        inputs    = tokenizer(chat_text, return_tensors='pt').to(model.device)
+        n_in      = int(inputs['input_ids'].shape[1])
+
+        do_sample = temperature > 0
+        gen_kwargs = {
+            'max_new_tokens': max_tokens,
+            'do_sample':      do_sample,
+            'pad_token_id':   tokenizer.eos_token_id,
+        }
+        if do_sample:
+            gen_kwargs['temperature'] = temperature
+
+        import torch  # local import — keep module importable without torch
+        with torch.no_grad():
+            out_ids = model.generate(**inputs, **gen_kwargs)
+
+        # Slice off the prompt prefix; what's left is the model's reply.
+        gen_ids = out_ids[0, n_in:]
+        n_out   = int(gen_ids.shape[0])
+        raw     = tokenizer.decode(gen_ids, skip_special_tokens=True)
+        return _extract_sql(raw), n_in, n_out
 
     return generate_fn
 
@@ -180,6 +264,20 @@ def _is_retryable(exc: Exception) -> bool:
 def _err_label(exc: Exception) -> str:
     status = _http_status(exc)
     return f"HTTP {status}" if status is not None else exc.__class__.__name__
+
+
+def _apply_chat_template(tokenizer, prompt: str) -> str:
+    """
+    Wrap ``prompt`` with the tokenizer's chat template when one is defined
+    (Instruct models). Falls back to the raw prompt for base models.
+    """
+    if getattr(tokenizer, 'chat_template', None):
+        return tokenizer.apply_chat_template(
+            [{'role': 'user', 'content': prompt}],
+            tokenize=False,
+            add_generation_prompt=True,
+        )
+    return prompt
 
 
 _FENCE_PATTERN = re.compile(r'```(?:sql)?\s*(.*?)```', re.DOTALL | re.IGNORECASE)
