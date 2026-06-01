@@ -19,7 +19,6 @@ import signal
 import multiprocessing
 import time
 from typing import Dict, List, Tuple
-from tqdm import tqdm
 
 # Import dependencies
 import torch
@@ -76,15 +75,13 @@ def load_prm_model(prm_ckpt: str, model_config: dict):
         base = AutoModelForCausalLM.from_pretrained(
             model_config['base_name'],
             device_map='auto',
-            torch_dtype=torch.float16,
-            use_safetensors=False,
+            dtype=torch.float16,
         )
     else:
         print("Using CPU")
         base = AutoModelForCausalLM.from_pretrained(
             model_config['base_name'],
-            torch_dtype=torch.float32,
-            use_safetensors=False,
+            dtype=torch.float32,
         )
     
     # Load LoRA adapter
@@ -118,14 +115,12 @@ def load_generator(model_config: dict):
         return AutoModelForCausalLM.from_pretrained(
             model_config['base_name'],
             device_map='auto',
-            torch_dtype=torch.float16,
-            use_safetensors=False,
+            dtype=torch.float16,
         )
     else:
         return AutoModelForCausalLM.from_pretrained(
             model_config['base_name'],
-            torch_dtype=torch.float32,
-            use_safetensors=False,
+            dtype=torch.float32,
         )
 
 
@@ -288,6 +283,139 @@ def build_repair_prompt(question: str, schema: str, original_sql: str, faulty_cl
     else:
         # General repair with more specific guidance
         return f"Question: {question}\nSchema: {schema}\n\nRewrite this SQL query to be more accurate: '{original_sql}'\n\nSQL: SELECT"
+
+
+def run_plan_b_for_evaluate(
+    samples: List[Dict],
+    prm_ckpt: str,
+    max_retries: int = 3,  # unused — Plan B uses oracle selection
+) -> Tuple[List[str], List[int], List[int]]:
+    """
+    evaluate.py-compatible entry point for Plan B.
+
+    Loads the eval config, runs eval_best_of_n_direct(), and returns
+    (predictions, token_costs, attempt_counts).
+    """
+    config_path = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+        'clause_ppo', 'configs', 'eval_qwen_config.yaml',
+    )
+    with open(config_path) as f:
+        config = yaml.safe_load(f)
+
+    spider_dir = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+        'clause_ppo', 'data', 'spider',
+    )
+
+    predictions, token_costs, attempt_counts, _ = eval_best_of_n_direct(
+        samples=samples,
+        config=config,
+        spider_dir=spider_dir,
+        prm_ckpt=prm_ckpt,
+    )
+    return predictions, token_costs, attempt_counts
+
+
+def eval_best_of_n_direct(
+    samples: List[Dict],
+    config: dict,
+    spider_dir: str,
+    prm_ckpt: str,
+) -> Tuple[List[str], List[int], List[int], Dict]:
+    """
+    Core Plan B evaluation loop that operates on a pre-loaded sample list.
+
+    Returns (predictions, token_costs, attempt_counts, summary).
+    """
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    print(f"Device: {device}")
+
+    tokenizer = AutoTokenizer.from_pretrained(config['model']['base_name'])
+    if tokenizer.pad_token is None:
+        tokenizer.pad_token = tokenizer.eos_token
+
+    prm       = load_prm_model(prm_ckpt, config['model'])
+    generator = load_generator(config['model'])
+
+    env          = NL2SQLEnv(spider_dir=spider_dir)
+    n_candidates = config['eval']['n_candidates']
+    max_tokens   = config['eval']['max_new_tokens']
+
+    predictions:    List[str] = []
+    token_costs:    List[int] = []
+    attempt_counts: List[int] = []
+    plan_b_correct  = 0
+
+    n_total = len(samples)
+    for i, sample in enumerate(samples):
+        question = sample['question']
+        db_id    = sample['db_id']
+
+        print(f"[{i+1}/{n_total}] {db_id}: {question[:60]}")
+
+        env.reset(sample)
+
+        table_info = env.tables.get(db_id, {})
+        schema = (
+            f"Database {db_id} tables: {', '.join(table_info['table_names'])}"
+            if 'table_names' in table_info
+            else f'[schema unavailable for {db_id}]'
+        )
+
+        # ── Initial SQL: input to PRM scoring and fallback ──────────────────
+        initial_prompt = build_initial_prompt(question, schema)
+        initial_sql    = generate_sql(generator, tokenizer, initial_prompt, max_tokens, temperature=0.0)
+        print(f"  initial sql: {initial_sql[:80]}")
+
+        # ── Plan B: score clauses, repair, oracle-select ────────────────────
+        clause_scores = score_clauses(prm, tokenizer, question, schema, initial_sql, device)
+        faulty_clause = (
+            min(clause_scores, key=clause_scores.get)
+            if clause_scores else 'SELECT'
+        )
+        print(f"  plan_b: faulty_clause={faulty_clause}  scores={clause_scores}")
+
+        repair_prompt        = build_repair_prompt(question, schema, initial_sql, faulty_clause, clause_scores)
+        repair_prompt_tokens = len(tokenizer.encode(repair_prompt))
+        plan_b_total_tokens  = repair_prompt_tokens
+
+        print(f"  plan_b: generating {n_candidates} repair candidate(s)")
+        plan_b_candidates = []
+        for j in range(n_candidates):
+            cand = generate_sql(generator, tokenizer, repair_prompt, max_tokens, temperature=1.0)
+            plan_b_candidates.append(cand)
+            plan_b_total_tokens += len(tokenizer.encode(cand))
+            print(f"  plan_b[{j}]: {cand[:80]}")
+
+        best_plan_b = initial_sql
+        for cand in plan_b_candidates:
+            env.reset(sample)
+            if env.step(cand)[0] > 0:
+                best_plan_b = cand
+                plan_b_correct += 1
+                print(f"  plan_b: correct")
+                break
+        else:
+            print(f"  plan_b: all candidates wrong")
+
+        predictions.append(best_plan_b)
+        token_costs.append(plan_b_total_tokens)
+        attempt_counts.append(1)
+
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+
+    plan_b_acc = plan_b_correct / len(samples)
+    avg_tokens = sum(token_costs) / len(token_costs) if token_costs else 0.0
+
+    summary = {
+        'plan_b_accuracy': plan_b_acc,
+        'avg_tokens':      avg_tokens,
+        'total_samples':   len(samples),
+        'plan_b_correct':  plan_b_correct,
+    }
+    return predictions, token_costs, attempt_counts, summary
 
 
 def eval_best_of_n(config: dict, spider_dir: str, prm_ckpt: str, limit: int = None):
