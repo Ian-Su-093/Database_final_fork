@@ -22,12 +22,12 @@ final/
 │   ├── scripts/          ← build_corruption_dataset.py, train_prm.py, train_ppo.py
 │   └── src/              ← data, models, training, utils
 ├── scripts/
-│   └── evaluate.py       ← baseline vs PPO comparison table (Sam)
-├── src/                  ← Sam's eval pipeline
+│   └── evaluate.py       ← baseline vs Plan B vs PPO comparison table
+├── src/                  ← eval pipeline
 │   ├── config.py         ← shared constants + .env loader
 │   ├── env/              ← NL2SQLEnv (RL environment)
-│   ├── eval/             ← execution_accuracy, partial_match
-│   └── baseline/         ← full-regen baseline (injectable generate_fn)
+│   ├── eval/             ← execution_accuracy, partial_match, best_of_n (Plan B)
+│   └── baseline/         ← full-regen baseline + plan_b_inference adapter
 ├── tests/                ← test suite
 ├── .env.example          ← copy to .env, set HF_TOKEN
 └── requirements.txt
@@ -57,36 +57,25 @@ rm -rf __MACOSX/
 
 ## Evaluation
 
-Compare the full-regeneration baseline against clause-level PPO on Spider:
-
 ```bash
-# API backend (default) — needs HF_TOKEN in .env
-python scripts/evaluate.py --split dev --max-samples 20
-
-# Local backend — no API, no 504s. First run downloads ~3 GB weights.
+# Local backend (no API key needed; first run downloads ~3 GB)
 python scripts/evaluate.py --split dev --backend local --max-samples 20
+
+# With Plan B (ClausePRM + Best-of-N) — needs a trained PRM checkpoint
+python scripts/evaluate.py --split dev --backend local --max-samples 20 \
+    --plan-b-ckpt clause_ppo/results/prm_checkpoints/best_checkpoint
+
+# API backend — set HF_TOKEN in .env first
+python scripts/evaluate.py --split dev --max-samples 20
 ```
 
 Output (Accuracy@N where N = `--max-retries`, default 3):
 
-| Method     | Accuracy@3 | Avg Token Cost |
-|------------|-----------:|---------------:|
-| Full regen |          ? |              ? |
-| Clause PPO |          ? |              ? |
-
-- **Baseline backbone:** `Qwen/Qwen2.5-Coder-1.5B-Instruct`, available via two
-  backends — `--backend api` (HF Inference API via Featherless AI) or
-  `--backend local` (downloads weights, runs on-device). Precision and device
-  for the local backend come from [`src/config.py`](src/config.py)
-  (`LOCAL_DTYPE`, `LOCAL_DEVICE`), not CLI flags.
-- **Token:** read from `HF_TOKEN` in `.env` (gitignored); needed for `api`,
-  optional for `local`. Never a CLI flag.
-- **Clause PPO column** needs `--ppo-ckpt PATH`, but currently raises
-  `NotImplementedError` until the PPO actor exposes an inference entry point
-  (see `.claude/docs/QUESTIONS.md`).
-
-Flags: `--split {dev,train}`, `--backend {api,local}`, `--max-retries N`,
-`--model ID`, `--max-tokens N`, `--max-samples N`, `--output preds.json`.
+| Method        | Accuracy@3 | Avg Token Cost |
+|---------------|-----------:|---------------:|
+| Full regen    |          ? |              ? |
+| Plan B (PRM)  |          ? |              ? |
+| Clause PPO    |          ? |              ? |
 
 Run the test suite (no GPU or API calls required — backends are faked):
 
@@ -94,107 +83,3 @@ Run the test suite (no GPU or API calls required — backends are faked):
 python -m pytest tests/ -v
 ```
 
----
-
-## Dataset Documentation
-
-### Source: Spider
-
-[Spider](https://yale-nlp.github.io/spider/) is a large-scale cross-domain NL2SQL benchmark.
-
-| Split | Examples | Use |
-|-------|----------|-----|
-| `train_spider.json` | ~7,000 | PRM training (corruption + PPO) |
-| `dev.json` | ~1,034 | Evaluation only — never trained on |
-| `tables.json` | 166 databases | Schema definitions |
-| `database/` | 166 SQLite files | Execution oracle |
-
-Each example contains: `question` (natural language), `query` (gold SQL), `db_id` (which database).
-
-### Processed Datasets (built by `scripts/build_corruption_dataset.py`)
-
-Stored in `clause_ppo/data/processed/` after running Step 1.
-
-#### `original_dataset.json`
-
-Filtered originals with pre-computed clause splits and prefix states. Each entry:
-
-```json
-{
-  "db_id": "concert_singer",
-  "question": "How many singers are there?",
-  "query": "SELECT count(*) FROM singer",
-  "prefix_states": [
-    {
-      "question": "How many singers are there?",
-      "schema": "singer(singer_id, name, age, ...), concert(...)",
-      "prefix_query_str": "SELECT count(*) FROM singer",
-      "clause_name": "from",
-      "position": 0
-    }
-  ]
-}
-```
-
-Used as **positive examples** (label `1.0`) for PRM training.
-
-#### `corruption_dataset.json`
-
-Rule-based corruptions of the original queries, verified by the SQLite oracle (corrupted query must execute to a *different* result than gold). Each entry:
-
-```json
-{
-  "db_id": "concert_singer",
-  "question": "How many singers are there?",
-  "original_query": "SELECT count(*) FROM singer",
-  "corrupted_query": "SELECT count(*) FROM concert",
-  "corrupted_clause": "from",
-  "corrupted_position": 0,
-  "strategy": "wrong_table"
-}
-```
-
-Used as **negative examples** with cascade labeling:
-- Prefix positions `0 .. j*-1` → label `1.0` (still correct before the fault)
-- Prefix position `j*` and beyond → label `0.0` (fault introduced here)
-
-#### `corruption_stats.json`
-
-Per-clause pass rates for the corruption pipeline. Healthy range: `0.1–0.6`.
-
-```json
-{
-  "select": {"attempts": 100, "verified": 88, "pass_rate": 0.88},
-  "from":   {"attempts": 100, "verified": 96, "pass_rate": 0.96},
-  ...
-}
-```
-
-Near-zero means `reconstruct_sql` is broken; near-one means corruptions are trivially equivalent.
-
-### PRM Input Format
-
-The PRM receives one prefix state at a time, formatted as:
-
-```
-[QUESTION] {question} [SCHEMA] {schema} [PREFIX] {prefix_sql}
-```
-
-For a 4-clause query, the model is called **once per prefix** to produce per-clause scores:
-
-| Call | Prefix passed to PRM | Score |
-|------|----------------------|-------|
-| 1 | `SELECT count(*)` | V_phi(s1) |
-| 2 | `SELECT count(*) FROM singer` | V_phi(s2) |
-| 3 | `SELECT count(*) FROM singer WHERE age > 25` | V_phi(s3) |
-| 4 | `SELECT count(*) FROM singer WHERE age > 25 GROUP BY country` | V_phi(s4) |
-
-A drop in score between consecutive steps localises the faulty clause.
-
-### Data Split for Training
-
-| Portion | Size | Purpose |
-|---------|------|---------|
-| ~4,000 train examples | corruption dataset | PRM training (Phase 1) |
-| ~3,000 train examples | held out | PPO fine-tuning (Phase 2) |
-| dev set | ~1,034 | Evaluation only |

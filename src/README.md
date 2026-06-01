@@ -9,7 +9,9 @@ Sam's modules for the clause-PPO pipeline.
 | Module | What it does |
 |--------|-------------|
 | `src/env/env.py` | RL environment — wraps SQLite execution into a gym-style `reset / step` interface |
-| `src/eval/metrics.py` | Evaluation — Spider EX and per-clause token F1 |
+| `src/eval/metrics.py` | Evaluation — Spider EX, per-clause token F1, SQL prefix splitter |
+| `src/eval/best_of_n.py` | Plan B — ClausePRM + Best-of-N clause repair at inference time |
+| `src/baseline/plan_b_inference.py` | Thin adapter between `evaluate.py` and `best_of_n.py` |
 
 ---
 
@@ -114,9 +116,10 @@ already knows the faulty clause. It is used in `validate_env.py` (integration te
 with a mock PRM) and will be relevant at inference time when no corruption engine
 is available.
 
-**Note on `score_clause`:** there is no per-clause scoring loop during generation.
-The PRM scores the corrupted prefix once after generation (see `build_prm_prompt`).
-Clause scoring during autoregressive generation is a future extension.
+**Note on `score_clause`:** during PPO training, the PRM scores the corrupted
+prefix once after generation (see `build_prm_prompt`). At inference time, Plan B
+(`src/eval/best_of_n.py`) uses `score_clauses()` to score each cumulative prefix
+and identify the faulty clause via argmin.
 
 ### Constructor options
 
@@ -135,7 +138,7 @@ NL2SQLEnv(
 ### Import
 
 ```python
-from eval.metrics import execution_accuracy, partial_match
+from eval.metrics import execution_accuracy, partial_match, split_sql_prefixes
 ```
 
 ### execution_accuracy
@@ -168,6 +171,18 @@ average (to avoid inflating scores).
 
 **Note:** uses a flat regex split, not a full SQL parser. Good for coarse
 diagnosis; use EX as the primary metric.
+
+### split_sql_prefixes
+
+Splits a raw SQL string into cumulative `(clause_label, prefix_sql)` pairs,
+used by Plan B for per-clause PRM scoring.
+
+```python
+split_sql_prefixes("SELECT a FROM t WHERE x = 1")
+# → [('SELECT', 'SELECT a'),
+#    ('FROM',   'SELECT a FROM t'),
+#    ('WHERE',  'SELECT a FROM t WHERE x = 1')]
+```
 
 ---
 
@@ -277,8 +292,11 @@ Runs the full-regen baseline over the split and prints the comparison table.
 Precision / device for `--backend local` come from [`src/config.py`](config.py)
 (`LOCAL_DTYPE`, `LOCAL_DEVICE`), not CLI flags.
 
-`--ppo-ckpt` is accepted but the PPO path raises `NotImplementedError` until
-Henry exposes an actor-loading inference entry point (see QUESTIONS.md).
+`--plan-b-ckpt PATH` enables Plan B (ClausePRM + Best-of-N); output JSON gains
+`plan_b_sql` and `plan_b_token_cost` fields per sample.
+
+`--ppo-ckpt` is accepted but raises `NotImplementedError` until Henry exposes
+an actor-loading inference entry point (see QUESTIONS.md).
 
 ---
 
