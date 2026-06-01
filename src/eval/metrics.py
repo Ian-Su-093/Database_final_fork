@@ -134,6 +134,36 @@ def _split_sql_clauses(sql: str) -> dict[str, str]:
     return result
 
 
+def split_sql_prefixes(sql: str) -> list[tuple[str, str]]:
+    """
+    Split a raw SQL string into (clause_label, cumulative_prefix) pairs.
+
+    Each prefix includes all clauses up to and including that keyword, suitable
+    for prefix-based PRM scoring where the faulty clause is argmin over scores.
+
+    Example:
+        "SELECT a FROM t WHERE x = 1"
+        → [('SELECT', 'SELECT a'),
+           ('FROM',   'SELECT a FROM t'),
+           ('WHERE',  'SELECT a FROM t WHERE x = 1')]
+    """
+    matches = list(_CLAUSE_PATTERN.finditer(sql))
+    if not matches:
+        stripped = sql.strip()
+        return [('SELECT', stripped)] if stripped else []
+
+    select_body = sql[:matches[0].start()].strip()
+    prefixes = [('SELECT', select_body)] if select_body else []
+
+    for i, m in enumerate(matches):
+        kw = re.sub(r'\s+', ' ', m.group(1).upper())
+        end = matches[i + 1].start() if i + 1 < len(matches) else len(sql)
+        prefix_sql = sql[:end].strip().rstrip(';')
+        prefixes.append((kw, prefix_sql))
+    
+    return prefixes
+
+
 def _token_f1(pred_text: str, gold_text: str) -> float:
     """Token-level multiset F1, lowercased and whitespace-split."""
     pred_toks = pred_text.lower().split()
