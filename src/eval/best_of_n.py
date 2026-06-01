@@ -15,17 +15,21 @@ No PPO training involved.
 import os
 import sys
 import json
-import time
 from typing import Dict, List, Tuple
 
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
-import yaml
 
-_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+_REPO_ROOT      = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+_SRC            = os.path.join(_REPO_ROOT, 'src')
 _CLAUSE_PPO_SRC = os.path.join(_REPO_ROOT, 'clause_ppo', 'src')
-sys.path.insert(0, _CLAUSE_PPO_SRC)
+for _p in (_SRC, _CLAUSE_PPO_SRC):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
 
+from config import (
+    SPIDER_DIR, LOCAL_MODEL, MAX_TOKENS, TEMPERATURE, MAX_RETRIES,
+)
 from models.prm_inference import PRMScorer
 from env.env import NL2SQLEnv
 from eval.metrics import execution_accuracy, split_sql_prefixes
@@ -160,30 +164,16 @@ def build_repair_prompt(question: str, schema: str, original_sql: str, faulty_cl
 def run_plan_b_for_evaluate(
     samples: List[Dict],
     prm_ckpt: str,
-    max_retries: int = 3,  # unused — Plan B uses oracle selection
+    max_retries: int = MAX_RETRIES,
 ) -> Tuple[List[str], List[int], List[int]]:
     """
     evaluate.py-compatible entry point for Plan B.
 
-    Loads the eval config, runs eval_best_of_n_direct(), and returns
-    (predictions, token_costs, attempt_counts).
+    Returns (predictions, token_costs, attempt_counts).
     """
-    config_path = os.path.join(
-        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
-        'clause_ppo', 'configs', 'eval_qwen_config.yaml',
-    )
-    with open(config_path) as f:
-        config = yaml.safe_load(f)
-
-    spider_dir = os.path.join(
-        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
-        'clause_ppo', 'data', 'spider',
-    )
-
     predictions, token_costs, attempt_counts, _ = eval_best_of_n_direct(
         samples=samples,
-        config=config,
-        spider_dir=spider_dir,
+        spider_dir=SPIDER_DIR,
         prm_ckpt=prm_ckpt,
     )
     return predictions, token_costs, attempt_counts
@@ -191,7 +181,6 @@ def run_plan_b_for_evaluate(
 
 def eval_best_of_n_direct(
     samples: List[Dict],
-    config: dict,
     spider_dir: str,
     prm_ckpt: str,
 ) -> Tuple[List[str], List[int], List[int], Dict]:
@@ -200,16 +189,16 @@ def eval_best_of_n_direct(
 
     Returns (predictions, token_costs, attempt_counts, summary).
     """
-    tokenizer = AutoTokenizer.from_pretrained(config['model']['base_name'])
+    tokenizer = AutoTokenizer.from_pretrained(LOCAL_MODEL)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
-    prm_scorer = PRMScorer(prm_ckpt, base_model=config['model']['base_name'])
-    generator  = load_generator(config['model'])
+    prm_scorer = PRMScorer(prm_ckpt, base_model=LOCAL_MODEL)
+    generator  = load_generator({'base_name': LOCAL_MODEL})
 
     env          = NL2SQLEnv(spider_dir=spider_dir)
-    n_candidates = config['eval']['n_candidates']
-    max_tokens   = config['eval']['max_new_tokens']
+    n_candidates = MAX_RETRIES
+    max_tokens   = MAX_TOKENS
 
     predictions:    List[str] = []
     token_costs:    List[int] = []
@@ -287,14 +276,19 @@ def eval_best_of_n_direct(
     return predictions, token_costs, attempt_counts, summary
 
 
-def eval_best_of_n(config: dict, spider_dir: str, prm_ckpt: str, limit: int = None):
+def eval_best_of_n(
+    spider_dir: str,
+    prm_ckpt: str,
+    limit: int = None,
+    output_file: str = 'results/eval_plan_b.jsonl',
+):
     """Standalone Plan B evaluation pipeline."""
-    tokenizer = AutoTokenizer.from_pretrained(config['model']['base_name'])
+    tokenizer = AutoTokenizer.from_pretrained(LOCAL_MODEL)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
-    prm_scorer = PRMScorer(prm_ckpt, base_model=config['model']['base_name'])
-    generator  = load_generator(config['model'])
+    prm_scorer = PRMScorer(prm_ckpt, base_model=LOCAL_MODEL)
+    generator  = load_generator({'base_name': LOCAL_MODEL})
 
     processed_file = 'data/processed/original_dataset.json'
     if not os.path.exists(processed_file):
@@ -307,7 +301,7 @@ def eval_best_of_n(config: dict, spider_dir: str, prm_ckpt: str, limit: int = No
     print(f"Evaluating {len(samples)} samples...")
 
     env          = NL2SQLEnv(spider_dir=spider_dir)
-    n_candidates = config['eval']['n_candidates']
+    n_candidates = MAX_RETRIES
     plan_b_predictions: List[str] = []
     plan_b_tokens:      List[int] = []
 
@@ -321,8 +315,8 @@ def eval_best_of_n(config: dict, spider_dir: str, prm_ckpt: str, limit: int = No
 
             initial_prompt = build_initial_prompt(question, schema)
             initial_sql    = generate_sql(generator, tokenizer, initial_prompt,
-                                          config['eval']['max_new_tokens'], temperature=0.0)
-            print(f"  initial: {initial_sql[:80]}")
+                                          MAX_TOKENS, temperature=0.0)
+            print(f"  initial: {initial_sql}")
 
             clause_scores = score_clauses(prm_scorer, question, schema, initial_sql)
             faulty_clause = min(clause_scores, key=clause_scores.get) if clause_scores else 'SELECT'
@@ -334,7 +328,7 @@ def eval_best_of_n(config: dict, spider_dir: str, prm_ckpt: str, limit: int = No
             candidates = []
             for j in range(n_candidates):
                 cand = generate_sql(generator, tokenizer, repair_prompt,
-                                    config['eval']['max_new_tokens'], temperature=1.0)
+                                    MAX_TOKENS, temperature=TEMPERATURE)
                 candidates.append(cand)
                 total_tokens += len(tokenizer.encode(cand))
                 print(f"  candidate[{j}]: {cand[:80]}")
@@ -366,7 +360,6 @@ def eval_best_of_n(config: dict, spider_dir: str, prm_ckpt: str, limit: int = No
     print(f"\nPlan B accuracy: {plan_b_acc:.4f}")
     print(f"Avg tokens:      {avg_tokens:.1f}")
 
-    output_file = config['paths']['output_file']
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
     summary = {
         'plan_b_ex':          plan_b_acc,
