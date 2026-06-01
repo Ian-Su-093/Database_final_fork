@@ -23,7 +23,7 @@ def run_plan_b_inference(
     prm_ckpt:    str,
     max_retries: int = 3,
     limit:       int = None,
-) -> Tuple[List[str], List[int], List[int]]:
+) -> Tuple[List[str], List[int], List[int], List[bool]]:
     """
     Run Plan B inference (ClausePRM + Best-of-N) on a list of Spider samples.
 
@@ -34,7 +34,7 @@ def run_plan_b_inference(
         limit:       Truncate samples for smoke tests.
 
     Returns:
-        (predictions, token_costs, attempt_counts) matching the evaluate.py interface.
+        (predictions, token_costs, attempt_counts, successes) matching the evaluate.py interface.
     """
     if not os.path.exists(prm_ckpt):
         raise FileNotFoundError(

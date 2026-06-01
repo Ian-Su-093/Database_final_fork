@@ -165,29 +165,29 @@ def run_plan_b_for_evaluate(
     samples: List[Dict],
     prm_ckpt: str,
     max_retries: int = MAX_RETRIES,
-) -> Tuple[List[str], List[int], List[int]]:
+) -> Tuple[List[str], List[int], List[int], List[bool]]:
     """
     evaluate.py-compatible entry point for Plan B.
 
-    Returns (predictions, token_costs, attempt_counts).
+    Returns (predictions, token_costs, attempt_counts, successes).
     """
-    predictions, token_costs, attempt_counts, _ = eval_best_of_n_direct(
+    predictions, token_costs, attempt_counts, successes, _ = eval_best_of_n_direct(
         samples=samples,
         spider_dir=SPIDER_DIR,
         prm_ckpt=prm_ckpt,
     )
-    return predictions, token_costs, attempt_counts
+    return predictions, token_costs, attempt_counts, successes
 
 
 def eval_best_of_n_direct(
     samples: List[Dict],
     spider_dir: str,
     prm_ckpt: str,
-) -> Tuple[List[str], List[int], List[int], Dict]:
+) -> Tuple[List[str], List[int], List[int], List[bool], Dict]:
     """
     Core Plan B evaluation loop that operates on a pre-loaded sample list.
 
-    Returns (predictions, token_costs, attempt_counts, summary).
+    Returns (predictions, token_costs, attempt_counts, successes, summary).
     """
     tokenizer = AutoTokenizer.from_pretrained(LOCAL_MODEL)
     if tokenizer.pad_token is None:
@@ -200,9 +200,10 @@ def eval_best_of_n_direct(
     n_candidates = MAX_RETRIES
     max_tokens   = MAX_TOKENS
 
-    predictions:    List[str] = []
-    token_costs:    List[int] = []
-    attempt_counts: List[int] = []
+    predictions:    List[str]  = []
+    token_costs:    List[int]  = []
+    attempt_counts: List[int]  = []
+    successes:      List[bool] = []
     plan_b_correct  = 0
 
     n_total = len(samples)
@@ -246,20 +247,25 @@ def eval_best_of_n_direct(
             plan_b_total_tokens += len(tokenizer.encode(cand))
             print(f"  plan_b[{j}]: {cand}")
 
-        best_plan_b = initial_sql
+        best_plan_b  = initial_sql
+        succeeded    = False
+        n_tried      = 0
         for cand in plan_b_candidates:
+            n_tried += 1
             env.reset(sample)
             if env.step(cand)[0] > 0:
                 best_plan_b = cand
                 plan_b_correct += 1
-                print(f"  plan_b: correct")
+                succeeded = True
+                print(f"  plan_b: correct (attempt {n_tried})")
                 break
         else:
             print(f"  plan_b: all candidates wrong")
 
         predictions.append(best_plan_b)
         token_costs.append(plan_b_total_tokens)
-        attempt_counts.append(1)
+        attempt_counts.append(n_tried)
+        successes.append(succeeded)
 
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
@@ -273,7 +279,7 @@ def eval_best_of_n_direct(
         'total_samples':   len(samples),
         'plan_b_correct':  plan_b_correct,
     }
-    return predictions, token_costs, attempt_counts, summary
+    return predictions, token_costs, attempt_counts, successes, summary
 
 
 def eval_best_of_n(
