@@ -22,21 +22,6 @@ Currently every retry sees the same prompt — purely independent samples
      results, try a different approach"). That baseline is expected to score
      *higher*, so beating it is a stronger result for PPO.
 
-**[open]** Baseline backbone provider — `hf-inference` does NOT serve
-`Qwen/Qwen2.5-Coder-1.5B-Instruct` (verified 2026-05). HF returns
-"Model not supported by any provider you have enabled." Findings:
-- The model's only HF inference provider is **Featherless AI** (paid, billed
-  via HF; small monthly free credit allowance).
-- `hf-inference`'s free text-generation catalog is now nearly empty
-  (`katanemo/Arch-Router-1.5B`, `livekit/turn-detector`, `razent/SciFive`) —
-  no general SQL/coder chat model, so a free `hf-inference` baseline is not possible.
-Options to decide with the team:
-  (A) enable Featherless AI in HF settings — no code change;
-  (B) local inference of the 1.5B model on the 4090 — needs a local generate_fn adapter;
-  (C) a different free hosted API (e.g. Groq free tier, OpenRouter `:free`) — needs an adapter;
-  (D) keep Qwen-1.5B only as the *intended* backbone, run a mock/echo backend locally
-      just to exercise the evaluate.py pipeline.
-`run_baseline` already takes an injected `generate_fn`, so any choice is a thin adapter.
 
 ---
 
@@ -60,3 +45,5 @@ Options to decide with the team:
 | 2026-05 | run_baseline returns `success: bool` (execution correctness) | Per-sample log was using string equality — wrong. The retry loop already knows the truth from env.step(); surfaced it explicitly. |
 | 2026-05 | Adapter retries transient API errors (5xx/429/timeouts) with backoff | One 504 was killing the whole eval run; retry network-level failures, fail loud on 4xx. Config: API_RETRIES, API_BACKOFF_SECS. |
 | 2026-05 | Pin baseline TEMPERATURE explicitly in config (default 0.7) | Provider defaults are opaque — Accuracy@N retries only mean pass@N if sampling is documented, not inherited. |
+| 2026-06 | Baseline backend: option (B) local inference implemented | `--backend local` runs Qwen2.5-Coder-1.5B locally via `load_local_model` + `make_local_generate_fn`; `--backend api` uses Featherless AI via HF token. Both satisfy the `generate_fn` contract. |
+| 2026-06 | Plan B (ClausePRM + Best-of-N) added as third eval method | No PPO training needed; PRM identifies faulty clause, LLM generates N repairs, oracle selects first correct one. Shares `MAX_TOKENS`/`TEMPERATURE`/`MAX_RETRIES` from `config.py`. |

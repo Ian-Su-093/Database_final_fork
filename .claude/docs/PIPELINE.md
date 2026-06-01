@@ -13,7 +13,7 @@ Phase 2 — PPO Training (clause_ppo/src/training/ppo_loop.py, Henry)
   Entry: clause_ppo/scripts/train_ppo.py
 
 Evaluation (scripts/evaluate.py, Sam + Ian)
-  Spider dev[all] → baseline + RL → metrics comparison table
+  Spider dev[all] → baseline + Plan B + RL → metrics comparison table
 ```
 
 ---
@@ -118,6 +118,7 @@ Final comparison table:
 | Method | Accuracy@3 | Avg Token Cost |
 |---|---|---|
 | Full regeneration (baseline) | ? | ? |
+| Plan B — ClausePRM + Best-of-N | ? | ? |
 | Clause PPO (ours) | ? | ? |
 
 ---

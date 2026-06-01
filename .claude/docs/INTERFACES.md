@@ -48,6 +48,16 @@ def partial_match(
     samples: list[dict],
 ) -> dict[str, float]
     """Per-clause token F1. Returns {clause_keyword: mean_F1}."""
+
+def split_sql_prefixes(sql: str) -> list[tuple[str, str]]
+    """
+    Raw SQL string → [(clause_label, cumulative_prefix), ...]
+    Example: "SELECT a FROM t WHERE x=1"
+      → [('SELECT', 'SELECT a'),
+         ('FROM',   'SELECT a FROM t'),
+         ('WHERE',  'SELECT a FROM t WHERE x = 1')]
+    Used by score_clauses() in best_of_n.py for per-clause PRM scoring.
+    """
 ```
 
 ---
@@ -109,20 +119,61 @@ intentional, documented in PIPELINE.md / QUESTIONS.md.
 
 ---
 
-## evaluate.py (Sam)  ✅ DONE (baseline path; PPO path stubbed)
+## Plan B (src/eval/best_of_n.py, src/baseline/plan_b_inference.py)
+
+```python
+# entry point called by evaluate.py → plan_b_inference.py
+def run_plan_b_for_evaluate(
+    samples: list[dict],
+    prm_ckpt: str,
+    max_retries: int = MAX_RETRIES,   # doubles as n_candidates
+) -> tuple[list[str], list[int], list[int]]
+    """Returns (predictions, token_costs, attempt_counts)."""
+
+# core loop (also callable directly)
+def eval_best_of_n_direct(
+    samples: list[dict],
+    spider_dir: str,
+    prm_ckpt: str,
+) -> tuple[list[str], list[int], list[int], dict]
+
+# per-sample clause scoring
+def score_clauses(
+    scorer: PRMScorer,
+    question: str,
+    schema: str,
+    sql: str,
+) -> dict[str, float]
+    """
+    Returns {clause_label: PRM score}; {} if no recognisable clauses.
+    Faulty clause = argmin; callers fall back to 'SELECT' on empty dict.
+    """
+```
+
+All generation/eval knobs (`MAX_TOKENS`, `TEMPERATURE`, `MAX_RETRIES`) come
+from `src/config.py` — shared with the baseline; no separate YAML needed.
+
+---
+
+## evaluate.py (Sam)  ✅ DONE (baseline + Plan B; PPO path stubbed)
 
 ```
 CLI: python scripts/evaluate.py --split dev [--max-retries 3]
-       [--model qwen/qwen2.5-coder-1.5b] [--provider hf-inference]
-       [--max-tokens 500] [--max-samples N] [--output preds.json] [--ppo-ckpt path]
+       [--backend api|local] [--model <id>]
+       [--max-tokens 500] [--max-samples N] [--output preds.json]
+       [--plan-b-ckpt <path>] [--ppo-ckpt <path>]
 
 HF token: read from HF_TOKEN in .env (repo root) — never a CLI flag.
 Defaults live in src/config.py.
 
 Output:
-| Method     | Accuracy@N | Avg Token Cost |
-| Full regen |    ?       |      ?         |
-| Clause PPO |    ?       |      ?         |   ← only if --ppo-ckpt and PPO inference exists
+| Method        | Accuracy@N | Avg Token Cost |
+| Full regen    |    ?       |      ?         |
+| Plan B (PRM)  |    ?       |      ?         |   ← only if --plan-b-ckpt
+| Clause PPO    |    ?       |      ?         |   ← only if --ppo-ckpt (stub)
+
+--output writes per-sample JSON; includes plan_b_sql and plan_b_token_cost
+fields when Plan B was run.
 ```
 
 PPO path raises NotImplementedError until Henry adds an actor-loading
