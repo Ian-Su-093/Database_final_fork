@@ -15,26 +15,22 @@ No PPO training involved.
 import os
 import sys
 import json
-import signal
-import multiprocessing
 import time
 from typing import Dict, List, Tuple
 
-# Import dependencies
 import torch
 import torch.nn as nn
-from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
+from transformers import AutoTokenizer, AutoModelForCausalLM
 from peft import PeftModel
 import yaml
 
-# Add clause_ppo to path
 _REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 _CLAUSE_PPO_SRC = os.path.join(_REPO_ROOT, 'clause_ppo', 'src')
 sys.path.insert(0, _CLAUSE_PPO_SRC)
 
-from data.clause_splitter import split_into_clauses
 from env.env import NL2SQLEnv
-from eval.metrics import execution_accuracy, partial_match
+from eval.metrics import execution_accuracy
+from baseline.full_regen import extract_sql, apply_chat_template
 
 
 class ClausePRMInference:
@@ -124,61 +120,36 @@ def load_generator(model_config: dict):
         )
 
 
-def generate_sql(generator, tokenizer, prompt: str, max_tokens: int = 32, temperature: float = 0.0):
-    """Generate SQL from prompt."""
-    inputs = tokenizer(prompt, return_tensors='pt', truncation=True, max_length=2048)
+def generate_sql(generator, tokenizer, prompt: str, max_tokens: int = 32, temperature: float = 0.0) -> str:
+    """
+    Generate SQL from a prompt ending with [SQL].
+    """
+    chat_text = apply_chat_template(tokenizer, prompt)
+    inputs = tokenizer(chat_text, return_tensors='pt', truncation=True, max_length=2048)
     if torch.cuda.is_available():
         inputs = {k: v.cuda() for k, v in inputs.items()}
-    
+
+    do_sample = temperature > 0.0
+    gen_kwargs = dict(
+        max_new_tokens=max_tokens,
+        do_sample=do_sample,
+        pad_token_id=tokenizer.pad_token_id,
+        eos_token_id=tokenizer.eos_token_id,
+    )
+    if do_sample:
+        gen_kwargs['temperature'] = temperature
+
     with torch.no_grad():
-        # Always use greedy decoding to avoid sampling issues with float16
-        output = generator.generate(
-            **inputs,
-            max_new_tokens=max_tokens,
-            do_sample=False,
-            pad_token_id=tokenizer.pad_token_id,
-            eos_token_id=tokenizer.eos_token_id
-        )
-    
-    # Decode generated SQL
+        output = generator.generate(**inputs, **gen_kwargs)
+
     generated_tokens = output[0][len(inputs['input_ids'][0]):]
-    sql = tokenizer.decode(generated_tokens, skip_special_tokens=True)
-    
-    # Clean up SQL - take first line and remove any extra content
-    sql = sql.split('\n')[0].strip()
-    
-    # Remove common prefixes/suffixes that might be added
-    sql = sql.replace('```sql', '').replace('```', '').strip()
-    
-    # If model generates explanation text, try to extract SQL
-    if 'To answer' in sql or 'To solve' in sql or 'The task' in sql:
-        # Model is being conversational, try to force a basic query
-        return "SELECT count(*) FROM head"
-    
-    # Remove explanatory text after semicolon or bracket
-    if ';' in sql:
-        sql = sql.split(';')[0].strip()
-    if '[' in sql:
-        sql = sql.split('[')[0].strip()
-    
-    # The prompt already includes SELECT, so prepend it
-    sql = "SELECT " + sql
-        
-    return sql
+    raw = tokenizer.decode(generated_tokens, skip_special_tokens=True)
+    return extract_sql(raw)
 
 
 def build_initial_prompt(question: str, schema: str) -> str:
     """Build prompt for initial SQL generation."""
-    # Clean up schema string and make it more readable
-    if "Table:" in schema:
-        # Schema is already formatted, just clean it up
-        schema = schema.replace("Table:", "\nTable:").strip()
-    elif "[schema unavailable" in schema and "department_management" in schema:
-        # Only use hardcoded schema for department_management when unavailable
-        schema = "Tables: head (head_id, name, born_state, age, department_id), department (department_id, name, creation, ranking, budget_in_billions, num_employees), management (department_id, head_id, temporary_acting). IMPORTANT: Use ONLY these exact table and column names."
-    
-    return f"Question: {question}\nSchema: {schema}\n\nSQL: SELECT"
-
+    return f"[QUESTION] {question} [SCHEMA] {schema} [TASK] Generate the full SQL query. [SQL]"
 
 def build_prm_prompt(question: str, schema: str, sql_prefix: str) -> str:
     """Build prompt for PRM scoring."""
@@ -212,77 +183,57 @@ def score_clauses(prm, tokenizer, question: str, schema: str, sql: str, device):
 
 
 def build_repair_prompt(question: str, schema: str, original_sql: str, faulty_clause: str, clause_scores: dict = None) -> str:
-    """Build smart repair prompt that preserves good clauses and only fixes bad ones."""
-    # Only use hardcoded schema for department_management when unavailable
-    if "[schema unavailable" in schema and "department_management" in schema:
-        schema = "Tables: head (head_id, name, born_state, age, department_id), department (department_id, name, creation, ranking, budget_in_billions, num_employees), management (department_id, head_id, temporary_acting). IMPORTANT: Use ONLY these exact table and column names."
-    
-    # Smart clause-level repair using PRM scores
+    """Build a repair prompt targeting the faulty clause. All variants end with [SQL]."""
     sql_upper = original_sql.upper().strip()
-    
-    # Parse SQL into basic components
-    select_part = ""
-    from_part = ""
-    where_part = ""
-    
+
+    select_part = from_part = where_part = ""
     try:
         if "SELECT" in sql_upper and "FROM" in sql_upper:
             select_start = sql_upper.find("SELECT")
-            from_start = sql_upper.find("FROM")
-            select_part = original_sql[select_start:from_start].strip()
-            
-            where_start = sql_upper.find("WHERE")
+            from_start   = sql_upper.find("FROM")
+            select_part  = original_sql[select_start:from_start].strip()
+            where_start  = sql_upper.find("WHERE")
             if where_start > from_start:
-                from_part = original_sql[from_start:where_start].strip()
+                from_part  = original_sql[from_start:where_start].strip()
                 where_part = original_sql[where_start:].strip()
             else:
                 from_part = original_sql[from_start:].strip()
         elif "SELECT" in sql_upper:
-            # Incomplete query - only has SELECT
             select_part = original_sql.strip()
     except Exception as e:
-        # Fallback if parsing fails
-        print(f"SQL parsing failed: {e}")
-    
-    # Use clause scores to identify good vs bad parts
-    if clause_scores and len(clause_scores) > 0:
-        # Find the worst scoring clause to fix
-        worst_clause = min(clause_scores.keys(), key=lambda k: clause_scores[k])
-        worst_score = clause_scores[worst_clause]
-        avg_score = sum(clause_scores.values()) / len(clause_scores)
-        
-        print(f"  📊 Clause scores: {clause_scores}")
-        print(f"  🎯 Worst clause '{worst_clause}' (score: {worst_score:.3f}, avg: {avg_score:.3f})")
-        
-        # If we have good clauses (score > 0.6), preserve them
+        print(f"  repair prompt: SQL parse failed ({e}), using general fallback")
+
+    # Surgical repair when PRM scores identify a clearly bad clause
+    if clause_scores:
+        worst_clause = min(clause_scores, key=clause_scores.get)
+        worst_score  = clause_scores[worst_clause]
         good_clauses = {k: v for k, v in clause_scores.items() if v > 0.6}
-        
-        if good_clauses and from_part and where_part:
-            # We have identifiable good clauses - use surgical repair
-            if worst_score < 0.4:  # Very bad clause needs complete rewrite
-                if "SELECT" in worst_clause:
-                    return f"Question: {question}\nSchema: {schema}\n\nKeep the table and filtering logic: '{from_part} {where_part}'\nBut fix the SELECT clause.\n\nSQL: SELECT"
-                elif "FROM" in worst_clause:
-                    return f"Question: {question}\nSchema: {schema}\n\nKeep the selection: '{select_part}'\nBut fix the table references.\n\nSQL: {select_part} FROM"
-                elif "WHERE" in worst_clause:
-                    return f"Question: {question}\nSchema: {schema}\n\nKeep the table selection: '{select_part} {from_part}'\nBut fix the filtering conditions.\n\nSQL: {select_part} {from_part} WHERE"
-    
-    # Fallback strategies based on SQL characteristics
-    if "join" in original_sql.lower() or len([w for w in original_sql.split() if w.upper() in ['JOIN', 'INNER', 'LEFT', 'RIGHT']]) > 0:
-        # Complex JOIN query - simplify
-        return f"Question: {question}\nSchema: {schema}\n\nThe query '{original_sql}' uses complex JOINs. Write a simpler query using just the main table.\n\nSQL: SELECT"
-    elif len(original_sql.strip()) < 20:
-        # Very incomplete query
-        return f"Question: {question}\nSchema: {schema}\n\nComplete this incomplete SQL: '{original_sql}'\n\nSQL: SELECT"
-    elif not from_part:
-        # Missing FROM clause
-        return f"Question: {question}\nSchema: {schema}\n\nThis query is missing table information. Complete it: '{original_sql}'\n\nSQL: SELECT"
+        if good_clauses and from_part and where_part and worst_score < 0.4:
+            if "SELECT" in worst_clause:
+                return (f"[QUESTION] {question} [SCHEMA] {schema} "
+                        f"[TASK] Fix the SELECT clause. Keep the existing table and filter: "
+                        f"'{from_part} {where_part}'. Generate the corrected SQL. [SQL]")
+            if "FROM" in worst_clause:
+                return (f"[QUESTION] {question} [SCHEMA] {schema} "
+                        f"[TASK] Fix the table references. Keep the selection: '{select_part}'. "
+                        f"Generate the corrected SQL. [SQL]")
+            if "WHERE" in worst_clause:
+                return (f"[QUESTION] {question} [SCHEMA] {schema} "
+                        f"[TASK] Fix the filtering conditions. Keep the table selection: "
+                        f"'{select_part} {from_part}'. Generate the corrected SQL. [SQL]")
+
+    # General fallbacks
+    has_join = any(w.upper() in {'JOIN', 'INNER', 'LEFT', 'RIGHT'} for w in original_sql.split())
+    if has_join:
+        task = f"Rewrite this query without complex JOINs: '{original_sql}'."
+    elif len(original_sql.strip()) < 20 or not from_part:
+        task = f"Complete or fix this incomplete SQL: '{original_sql}'."
     elif "count" in original_sql.lower() and "*" not in original_sql and "(" not in original_sql:
-        # Incomplete count function
-        return f"Question: {question}\nSchema: {schema}\n\nFix the count function in: '{original_sql}'\n\nSQL: SELECT"
+        task = f"Fix the COUNT function in: '{original_sql}'."
     else:
-        # General repair with more specific guidance
-        return f"Question: {question}\nSchema: {schema}\n\nRewrite this SQL query to be more accurate: '{original_sql}'\n\nSQL: SELECT"
+        task = f"Rewrite this SQL more accurately: '{original_sql}'."
+
+    return f"[QUESTION] {question} [SCHEMA] {schema} [TASK] {task} [SQL]"
 
 
 def run_plan_b_for_evaluate(
@@ -366,7 +317,7 @@ def eval_best_of_n_direct(
         # ── Initial SQL: input to PRM scoring and fallback ──────────────────
         initial_prompt = build_initial_prompt(question, schema)
         initial_sql    = generate_sql(generator, tokenizer, initial_prompt, max_tokens, temperature=0.0)
-        print(f"  initial sql: {initial_sql[:80]}")
+        print(f"  initial sql: {initial_sql}")
 
         # ── Plan B: score clauses, repair, oracle-select ────────────────────
         clause_scores = score_clauses(prm, tokenizer, question, schema, initial_sql, device)

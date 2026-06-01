@@ -45,12 +45,7 @@ def build_baseline_prompt(question: str, schema: str) -> str:
     Full-regen prompt. Same [QUESTION] / [SCHEMA] header as
     build_rewrite_prompt() so input-token counts stay comparable.
     """
-    return (
-        f"[QUESTION] {question} "
-        f"[SCHEMA] {schema} "
-        f"[TASK] Generate the full SQL query. "
-        f"[SQL]"
-    )
+    return f"[QUESTION] {question} [SCHEMA] {schema} [TASK] Generate the full SQL query. [SQL]"
 
 
 def run_baseline(
@@ -141,7 +136,7 @@ def make_hf_api_generate_fn(
         )
         raw_text = completion.choices[0].message.content or ''
         n_in, n_out = _usage_tokens(completion, prompt, raw_text, fallback_tokenizer)
-        return _extract_sql(raw_text), n_in, n_out
+        return extract_sql(raw_text), n_in, n_out
 
     def generate_fn(prompt: str) -> tuple[str, int, int]:
         for attempt in range(api_retries):
@@ -213,7 +208,7 @@ def make_local_generate_fn(
     is used otherwise.
     """
     def generate_fn(prompt: str) -> tuple[str, int, int]:
-        chat_text = _apply_chat_template(tokenizer, prompt)
+        chat_text = apply_chat_template(tokenizer, prompt)
         inputs    = tokenizer(chat_text, return_tensors='pt').to(model.device)
         n_in      = int(inputs['input_ids'].shape[1])
 
@@ -234,7 +229,7 @@ def make_local_generate_fn(
         gen_ids = out_ids[0, n_in:]
         n_out   = int(gen_ids.shape[0])
         raw     = tokenizer.decode(gen_ids, skip_special_tokens=True)
-        return _extract_sql(raw), n_in, n_out
+        return extract_sql(raw), n_in, n_out
 
     return generate_fn
 
@@ -266,7 +261,7 @@ def _err_label(exc: Exception) -> str:
     return f"HTTP {status}" if status is not None else exc.__class__.__name__
 
 
-def _apply_chat_template(tokenizer, prompt: str) -> str:
+def apply_chat_template(tokenizer, prompt: str) -> str:
     """
     Wrap ``prompt`` with the tokenizer's chat template when one is defined
     (Instruct models). Falls back to the raw prompt for base models.
@@ -283,7 +278,7 @@ def _apply_chat_template(tokenizer, prompt: str) -> str:
 _FENCE_PATTERN = re.compile(r'```(?:sql)?\s*(.*?)```', re.DOTALL | re.IGNORECASE)
 
 
-def _extract_sql(text: str) -> str:
+def extract_sql(text: str) -> str:
     """
     Pull SQL out of a chat model's reply.
     """
