@@ -86,15 +86,20 @@ class PRMScorer:
         score_head_path = os.path.join(checkpoint_dir, 'score_head.pt')
         self.score_head = nn.Linear(hidden_size, 1)
         if os.path.exists(score_head_path):
-            self.score_head.load_state_dict(
-                torch.load(score_head_path, map_location='cpu')
-            )
+            state = torch.load(score_head_path, map_location='cpu')
+            # Training saved score_head as nn.Sequential(Linear, Sigmoid);
+            # remap "0.weight"/"0.bias" → "weight"/"bias" for nn.Linear.
+            if '0.weight' in state:
+                state = {'weight': state['0.weight'], 'bias': state['0.bias']}
+            self.score_head.load_state_dict(state)
             print("  Score head loaded.", flush=True)
         else:
             print("  WARNING: score_head.pt not found — using random weights.", flush=True)
 
-        backbone_device = next(self.backbone.parameters()).device
-        self.score_head = self.score_head.to(backbone_device)
+        backbone_param  = next(self.backbone.parameters())
+        self.score_head = self.score_head.to(
+            device=backbone_param.device, dtype=backbone_param.dtype,
+        )
         self.score_head.eval()
 
         print("PRM ready.", flush=True)
