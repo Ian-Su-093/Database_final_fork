@@ -15,7 +15,7 @@ REWARD_CORRECT = +1.0
 REWARD_WRONG   = -1.0
 
 # ── Baseline backbone (HF Inference API) ─────────────────────────────────────
-BASELINE_MODEL = 'Qwen/Qwen2.5-Coder-1.5B-Instruct:featherless-ai'
+BASELINE_MODEL = 'Qwen/Qwen2.5-Coder-1.5B-Instruct'
 MAX_TOKENS     = 500      # max generated tokens per API call
 MAX_RETRIES    = 3        # full-regen attempts per sample (wrong-SQL retries)
 

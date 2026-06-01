@@ -12,7 +12,7 @@ model:
 eval:
   n_candidates: 3              # Fewer candidates for testing
   temperature: 0.7             
-  max_new_tokens: 64           # Shorter for testing
+  max_new_tokens: 128          # Increased for complete SQL generation
   max_prompt_length: 512       
   max_prm_length: 256          
 

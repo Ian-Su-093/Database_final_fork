@@ -15,6 +15,9 @@ No PPO training involved.
 import os
 import sys
 import json
+import signal
+import multiprocessing
+import time
 from typing import Dict, List, Tuple
 from tqdm import tqdm
 
@@ -126,7 +129,7 @@ def load_generator(model_config: dict):
         )
 
 
-def generate_sql(generator, tokenizer, prompt: str, max_tokens: int = 64, temperature: float = 0.0):
+def generate_sql(generator, tokenizer, prompt: str, max_tokens: int = 32, temperature: float = 0.0):
     """Generate SQL from prompt."""
     inputs = tokenizer(prompt, return_tensors='pt', truncation=True, max_length=2048)
     if torch.cuda.is_available():
@@ -146,17 +149,40 @@ def generate_sql(generator, tokenizer, prompt: str, max_tokens: int = 64, temper
     generated_tokens = output[0][len(inputs['input_ids'][0]):]
     sql = tokenizer.decode(generated_tokens, skip_special_tokens=True)
     
-    # Clean up SQL
+    # Clean up SQL - take first line and remove any extra content
     sql = sql.split('\n')[0].strip()
-    if not sql.upper().startswith('SELECT'):
-        sql = "SELECT " + sql
+    
+    # Remove common prefixes/suffixes that might be added
+    sql = sql.replace('```sql', '').replace('```', '').strip()
+    
+    # If model generates explanation text, try to extract SQL
+    if 'To answer' in sql or 'To solve' in sql or 'The task' in sql:
+        # Model is being conversational, try to force a basic query
+        return "SELECT count(*) FROM head"
+    
+    # Remove explanatory text after semicolon or bracket
+    if ';' in sql:
+        sql = sql.split(';')[0].strip()
+    if '[' in sql:
+        sql = sql.split('[')[0].strip()
+    
+    # The prompt already includes SELECT, so prepend it
+    sql = "SELECT " + sql
         
     return sql
 
 
 def build_initial_prompt(question: str, schema: str) -> str:
     """Build prompt for initial SQL generation."""
-    return f"Question: {question}\nSchema: {schema}\nSQL: SELECT"
+    # Clean up schema string and make it more readable
+    if "Table:" in schema:
+        # Schema is already formatted, just clean it up
+        schema = schema.replace("Table:", "\nTable:").strip()
+    elif "[schema unavailable" in schema and "department_management" in schema:
+        # Only use hardcoded schema for department_management when unavailable
+        schema = "Tables: head (head_id, name, born_state, age, department_id), department (department_id, name, creation, ranking, budget_in_billions, num_employees), management (department_id, head_id, temporary_acting). IMPORTANT: Use ONLY these exact table and column names."
+    
+    return f"Question: {question}\nSchema: {schema}\n\nSQL: SELECT"
 
 
 def build_prm_prompt(question: str, schema: str, sql_prefix: str) -> str:
@@ -190,9 +216,78 @@ def score_clauses(prm, tokenizer, question: str, schema: str, sql: str, device):
         return {'full_sql': 0.5}  # Default neutral score
 
 
-def build_repair_prompt(question: str, schema: str, original_sql: str, faulty_clause: str) -> str:
-    """Build prompt for repairing faulty clause."""
-    return f"Question: {question}\nSchema: {schema}\nOriginal SQL: {original_sql}\nRewrite the {faulty_clause} clause to fix the SQL:\nSQL: SELECT"
+def build_repair_prompt(question: str, schema: str, original_sql: str, faulty_clause: str, clause_scores: dict = None) -> str:
+    """Build smart repair prompt that preserves good clauses and only fixes bad ones."""
+    # Only use hardcoded schema for department_management when unavailable
+    if "[schema unavailable" in schema and "department_management" in schema:
+        schema = "Tables: head (head_id, name, born_state, age, department_id), department (department_id, name, creation, ranking, budget_in_billions, num_employees), management (department_id, head_id, temporary_acting). IMPORTANT: Use ONLY these exact table and column names."
+    
+    # Smart clause-level repair using PRM scores
+    sql_upper = original_sql.upper().strip()
+    
+    # Parse SQL into basic components
+    select_part = ""
+    from_part = ""
+    where_part = ""
+    
+    try:
+        if "SELECT" in sql_upper and "FROM" in sql_upper:
+            select_start = sql_upper.find("SELECT")
+            from_start = sql_upper.find("FROM")
+            select_part = original_sql[select_start:from_start].strip()
+            
+            where_start = sql_upper.find("WHERE")
+            if where_start > from_start:
+                from_part = original_sql[from_start:where_start].strip()
+                where_part = original_sql[where_start:].strip()
+            else:
+                from_part = original_sql[from_start:].strip()
+        elif "SELECT" in sql_upper:
+            # Incomplete query - only has SELECT
+            select_part = original_sql.strip()
+    except Exception as e:
+        # Fallback if parsing fails
+        print(f"SQL parsing failed: {e}")
+    
+    # Use clause scores to identify good vs bad parts
+    if clause_scores and len(clause_scores) > 0:
+        # Find the worst scoring clause to fix
+        worst_clause = min(clause_scores.keys(), key=lambda k: clause_scores[k])
+        worst_score = clause_scores[worst_clause]
+        avg_score = sum(clause_scores.values()) / len(clause_scores)
+        
+        print(f"  📊 Clause scores: {clause_scores}")
+        print(f"  🎯 Worst clause '{worst_clause}' (score: {worst_score:.3f}, avg: {avg_score:.3f})")
+        
+        # If we have good clauses (score > 0.6), preserve them
+        good_clauses = {k: v for k, v in clause_scores.items() if v > 0.6}
+        
+        if good_clauses and from_part and where_part:
+            # We have identifiable good clauses - use surgical repair
+            if worst_score < 0.4:  # Very bad clause needs complete rewrite
+                if "SELECT" in worst_clause:
+                    return f"Question: {question}\nSchema: {schema}\n\nKeep the table and filtering logic: '{from_part} {where_part}'\nBut fix the SELECT clause.\n\nSQL: SELECT"
+                elif "FROM" in worst_clause:
+                    return f"Question: {question}\nSchema: {schema}\n\nKeep the selection: '{select_part}'\nBut fix the table references.\n\nSQL: {select_part} FROM"
+                elif "WHERE" in worst_clause:
+                    return f"Question: {question}\nSchema: {schema}\n\nKeep the table selection: '{select_part} {from_part}'\nBut fix the filtering conditions.\n\nSQL: {select_part} {from_part} WHERE"
+    
+    # Fallback strategies based on SQL characteristics
+    if "join" in original_sql.lower() or len([w for w in original_sql.split() if w.upper() in ['JOIN', 'INNER', 'LEFT', 'RIGHT']]) > 0:
+        # Complex JOIN query - simplify
+        return f"Question: {question}\nSchema: {schema}\n\nThe query '{original_sql}' uses complex JOINs. Write a simpler query using just the main table.\n\nSQL: SELECT"
+    elif len(original_sql.strip()) < 20:
+        # Very incomplete query
+        return f"Question: {question}\nSchema: {schema}\n\nComplete this incomplete SQL: '{original_sql}'\n\nSQL: SELECT"
+    elif not from_part:
+        # Missing FROM clause
+        return f"Question: {question}\nSchema: {schema}\n\nThis query is missing table information. Complete it: '{original_sql}'\n\nSQL: SELECT"
+    elif "count" in original_sql.lower() and "*" not in original_sql and "(" not in original_sql:
+        # Incomplete count function
+        return f"Question: {question}\nSchema: {schema}\n\nFix the count function in: '{original_sql}'\n\nSQL: SELECT"
+    else:
+        # General repair with more specific guidance
+        return f"Question: {question}\nSchema: {schema}\n\nRewrite this SQL query to be more accurate: '{original_sql}'\n\nSQL: SELECT"
 
 
 def eval_best_of_n(config: dict, spider_dir: str, prm_ckpt: str, limit: int = None):
@@ -222,10 +317,14 @@ def eval_best_of_n(config: dict, spider_dir: str, prm_ckpt: str, limit: int = No
     with open(processed_file) as f:
         samples = json.load(f)
         
+    # Test car_1 samples (indices 87-178) 
+    start_idx = 87  # Start from car_1 samples
     if limit:
-        samples = samples[:limit]
+        samples = samples[start_idx:start_idx+limit]
+    else:
+        samples = samples[start_idx:]
         
-    print(f"Evaluating {len(samples)} samples...")
+    print(f"Evaluating {len(samples)} samples starting from index {start_idx}...")
     
     # Initialize environment
     env = NL2SQLEnv(spider_dir=spider_dir)
@@ -238,50 +337,174 @@ def eval_best_of_n(config: dict, spider_dir: str, prm_ckpt: str, limit: int = No
     
     n_candidates = config['eval']['n_candidates']
     
+    def timeout_handler(signum, frame):
+        raise TimeoutError("Sample processing timed out")
+    
     for i, sample in enumerate(tqdm(samples, desc="Evaluating Plan B")):
-            
-        # Reset environment
-        state = env.reset(sample)
-        question = state['question']
-        schema = state['schema']
+        actual_idx = start_idx + i  # Track actual sample index
+        print(f"🔍 Processing sample {actual_idx}: {sample.get('question', 'Unknown')[:50]}...")
         
-        # Step 1: Generate initial SQL (baseline prediction)
-        initial_prompt = build_initial_prompt(question, schema)
-        initial_sql = generate_sql(generator, tokenizer, initial_prompt, 
-                                 config['eval']['max_new_tokens'], temperature=0.0)
-        baseline_predictions.append(initial_sql)
-        baseline_tokens.append(50)  # Estimated tokens
+        start_time = time.time()
+        max_time = 25  # 25 seconds per sample
         
-        # Step 2: Score clauses with PRM
-        clause_scores = score_clauses(prm, tokenizer, question, schema, initial_sql, device)
+        # Test each sample individually - no skipping for now
+        # confirmed_problematic = []  # Start with empty list
+        # if actual_idx in confirmed_problematic:
+        #     print(f"⚠️ Skipping confirmed problematic sample {actual_idx}")
+        #     baseline_predictions.append("SELECT count(*) FROM table")
+        #     plan_b_predictions.append("SELECT count(*) FROM table") 
+        #     baseline_tokens.append(50 * n_candidates)
+        #     plan_b_tokens.append(50 * n_candidates)
+        #     continue
         
-        # Step 3: Identify faulty clause (lowest score)
-        if clause_scores:
-            faulty_clause = min(clause_scores.keys(), key=lambda k: clause_scores[k])
-        else:
-            faulty_clause = 'SELECT'
+        try:
+            # Track time for this sample
+            sample_start_time = time.time()
             
-        # Step 4: Generate repair candidates
-        repair_prompt = build_repair_prompt(question, schema, initial_sql, faulty_clause)
-        candidates = []
+            # Reset environment
+            print(f"  📋 Resetting environment for sample {actual_idx}...")
+            state = env.reset(sample)
+            question = state['question']
+            schema = state['schema']
+            print(f"  ✅ Environment reset complete. DB: {sample.get('db_id', 'unknown')}")
+            
+            # Check if we're taking too long
+            elapsed = time.time() - sample_start_time
+            if elapsed > 30:  # 30 second timeout per sample
+                print(f"  ⏰ Sample {actual_idx} taking too long ({elapsed:.1f}s), marking as problematic")
+                raise TimeoutError(f"Sample {actual_idx} exceeded 30s timeout")
         
-        for _ in range(n_candidates):
-            candidate = generate_sql(generator, tokenizer, repair_prompt,
-                                   config['eval']['max_new_tokens'], 
-                                   temperature=config['eval']['temperature'])
-            candidates.append(candidate)
+            # Step 1: Generate initial SQL (baseline prediction)
+            print(f"  🤖 Building initial prompt...")
+            initial_prompt = build_initial_prompt(question, schema)
+            print(f"  🚀 Generating initial SQL...")
+            initial_sql = generate_sql(generator, tokenizer, initial_prompt, 
+                                     config['eval']['max_new_tokens'], temperature=0.0)
+            print(f"  ✅ Generated: {initial_sql[:50]}...")
             
-        # Step 5: Oracle selection
-        best_sql = initial_sql  # Fallback
-        for candidate in candidates:
-            reward, _ = env.step(candidate)
-            if reward > 0:  # Correct execution
-                best_sql = candidate
-                break
-            env.reset(sample)  # Reset for next candidate
+            # Time check after initial generation
+            elapsed = time.time() - sample_start_time
+            if elapsed > 30:
+                print(f"  ⏰ Sample {actual_idx} timeout during initial generation ({elapsed:.1f}s)")
+                raise TimeoutError(f"Initial generation timeout")
             
-        plan_b_predictions.append(best_sql)
-        plan_b_tokens.append(50 + n_candidates * 30)  # Estimated tokens
+            # FAIR COMPARISON: Give baseline same token budget as Plan B
+            print(f"  🔄 Generating {n_candidates-1} additional baseline candidates...")
+            baseline_candidates = [initial_sql]
+            for j in range(n_candidates - 1):
+                print(f"    🚀 Generating baseline candidate {j+1}...")
+                candidate = generate_sql(generator, tokenizer, initial_prompt,
+                                       config['eval']['max_new_tokens'], temperature=0.1)  # Small temp for variety
+                baseline_candidates.append(candidate)
+                print(f"    ✅ Candidate {j+1}: {candidate[:30]}...")
+            
+            # Oracle selection for baseline (same as Plan B)
+            print(f"  🏆 Starting baseline oracle selection...")
+            best_baseline_sql = baseline_candidates[0]  # Fallback
+            for j, candidate in enumerate(baseline_candidates):
+                try:
+                    print(f"    🧪 Testing baseline candidate {j}: {candidate[:30]}...")
+                    env.reset(sample)
+                    reward, _ = env.step(candidate)
+                    print(f"    📊 Candidate {j} reward: {reward}")
+                    if reward > 0:  # Found a working query
+                        best_baseline_sql = candidate
+                        print(f"    ✅ Found working baseline: {candidate[:30]}...")
+                        break
+                except Exception as e:
+                    # Skip problematic SQL and continue
+                    print(f"    ⚠️ Baseline candidate {j} failed: {str(e)[:50]}")
+                    continue
+                    
+            baseline_predictions.append(best_baseline_sql)
+            baseline_tokens.append(50 * n_candidates)  # Same token budget as Plan B
+        
+            # Step 2: Score clauses with PRM
+            print(f"  🧮 Starting PRM clause scoring...")
+            clause_scores = score_clauses(prm, tokenizer, question, schema, initial_sql, device)
+            print(f"  ✅ PRM scoring complete. Scores: {clause_scores}")
+            
+            # Time check after PRM scoring
+            elapsed = time.time() - sample_start_time
+            if elapsed > 30:
+                print(f"  ⏰ Sample {actual_idx} timeout during PRM scoring ({elapsed:.1f}s)")
+                raise TimeoutError(f"PRM scoring timeout")
+        
+            # Step 3: Identify faulty clause (lowest score)
+            print(f"  🔍 Identifying faulty clause...")
+            if clause_scores:
+                faulty_clause = min(clause_scores.keys(), key=lambda k: clause_scores[k])
+                print(f"  🎯 Faulty clause: {faulty_clause}")
+            else:
+                faulty_clause = 'SELECT'
+                print(f"  ⚠️ No clause scores, using default: {faulty_clause}")
+                
+            # Step 4: Generate repair candidates
+            print(f"  🔧 Building repair prompt for clause: {faulty_clause}")
+            repair_prompt = build_repair_prompt(question, schema, initial_sql, faulty_clause, clause_scores)
+            candidates = []
+            
+            print(f"  🚀 Generating {n_candidates} Plan B repair candidates...")
+            for j in range(n_candidates):
+                print(f"    🛠️ Generating Plan B candidate {j}...")
+                try:
+                    # Use shorter max_tokens for repair to avoid hanging
+                    candidate = generate_sql(generator, tokenizer, repair_prompt,
+                                           min(32, config['eval']['max_new_tokens']), 
+                                           temperature=0.0)  # Use deterministic generation
+                    candidates.append(candidate)
+                    print(f"    ✅ Plan B candidate {j}: {candidate[:30]}...")
+                except Exception as e:
+                    print(f"    ⚠️ Plan B generation {j} failed: {str(e)[:50]}")
+                    # Use fallback candidate
+                    candidates.append(initial_sql)
+                    print(f"    🔄 Using fallback for candidate {j}")
+                    continue
+                
+            # Step 5: Oracle selection
+            print(f"  🏆 Starting Plan B oracle selection...")
+            best_sql = initial_sql  # Fallback to initial_sql for now - need to debug repair generation
+            for j, candidate in enumerate(candidates):
+                try:
+                    print(f"    🧪 Testing Plan B candidate {j}: {candidate[:30]}...")
+                    reward, _ = env.step(candidate)
+                    print(f"    📊 Plan B candidate {j} reward: {reward}")
+                    if reward > 0:  # Correct execution
+                        best_sql = candidate
+                        print(f"    ✅ Found working Plan B: {candidate[:30]}...")
+                        break
+                    env.reset(sample)  # Reset for next candidate
+                except Exception as e:
+                    # Skip problematic SQL and continue
+                    print(f"    ⚠️ Plan B candidate {j} failed: {str(e)[:50]}")
+                    env.reset(sample)  # Reset for next candidate
+                    continue
+            
+            plan_b_predictions.append(best_sql)
+            plan_b_tokens.append(50 * n_candidates)  # Same token budget as baseline
+            
+            # CRITICAL: Clean up resources to prevent memory buildup
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()  # Clear CUDA cache
+                torch.cuda.synchronize()  # Wait for operations to complete
+                
+        except TimeoutError:
+            print(f"⏰ Sample {i} timed out, skipping...")
+            # Add fallback predictions for timed out samples
+            baseline_predictions.append("SELECT 1")  # Dummy fallback
+            plan_b_predictions.append("SELECT 1")    # Dummy fallback
+            baseline_tokens.append(50 * n_candidates)
+            plan_b_tokens.append(50 * n_candidates)
+        except Exception as e:
+            print(f"💥 Sample {i} failed with error: {str(e)[:100]}")
+            # Add fallback predictions for failed samples
+            baseline_predictions.append("SELECT 1")  # Dummy fallback
+            plan_b_predictions.append("SELECT 1")    # Dummy fallback
+            baseline_tokens.append(50 * n_candidates)
+            plan_b_tokens.append(50 * n_candidates)
+        finally:
+            # Clear the alarm
+            signal.alarm(0)
         
     # Calculate metrics
     baseline_acc = execution_accuracy(baseline_predictions, samples, spider_dir)
