@@ -2,13 +2,17 @@
 
 Generation is injected as a generate_fn, so these run without torch /
 transformers / huggingface_hub and without the Spider DB (env is faked too).
+The local-adapter tests inject a fake ``torch`` module into sys.modules.
 """
+import sys
 import pytest
 
 from baseline.full_regen import (
     build_baseline_prompt,
     make_hf_api_generate_fn,
+    make_local_generate_fn,
     run_baseline,
+    _apply_chat_template,
     _extract_sql,
     _is_retryable,
     _usage_tokens,
@@ -348,3 +352,173 @@ def test_usage_tokens_raises_without_either():
     completion = _Completion('out', usage=None)
     with pytest.raises(RuntimeError):
         _usage_tokens(completion, 'prompt', 'out', None)
+
+
+# ── make_local_generate_fn ──────────────────────────────────────────────────
+
+class _FakeNoGrad:
+    """torch.no_grad() context-manager stand-in."""
+    def __enter__(self): return self
+    def __exit__(self, *exc): return False
+
+
+class _FakeTorchModule:
+    """Drop-in for ``import torch`` inside generate_fn."""
+    @staticmethod
+    def no_grad():
+        return _FakeNoGrad()
+
+
+@pytest.fixture
+def fake_torch(monkeypatch):
+    """Install a fake torch module so make_local_generate_fn can run."""
+    monkeypatch.setitem(sys.modules, 'torch', _FakeTorchModule())
+    yield
+
+
+class _Shape:
+    def __init__(self, n): self._n = n
+    @property
+    def shape(self): return (1, self._n)
+
+
+class _OutShape:
+    """Indexing [0, n:] returns a 1-D tensor stand-in with .shape[0] == len."""
+    def __init__(self, ids):
+        self._ids = ids
+
+    def __getitem__(self, key):
+        # key is (0, slice(n_in, None))
+        _, sl = key
+        return _Slice(self._ids[sl])
+
+
+class _Slice:
+    def __init__(self, ids):
+        self._ids = ids
+        self.shape = (len(ids),)
+
+
+class FakeTensor:
+    """Minimal ``inputs['input_ids']``: has .shape == (1, n) and .to() returns self."""
+    def __init__(self, n_tokens):
+        self._n = n_tokens
+        self.shape = (1, n_tokens)
+
+
+class FakeInputs(dict):
+    """Tokenizer output: dict-like with .to() that returns itself."""
+    def to(self, device):
+        return self
+
+
+class FakeTokenizer:
+    """Token = word; chat-template prepends '<chat>'."""
+    eos_token_id = 0
+
+    def __init__(self, chat_template='<chat>'):
+        self.chat_template = chat_template
+        self._next_decode  = ''
+
+    def apply_chat_template(self, messages, tokenize, add_generation_prompt):
+        # Tests pass tokenize=False, so return a string.
+        assert tokenize is False
+        return f"{self.chat_template} {messages[0]['content']}"
+
+    def __call__(self, text, return_tensors):
+        n = len(text.split())
+        return FakeInputs({'input_ids': FakeTensor(n)})
+
+    def decode(self, ids, skip_special_tokens):
+        return self._next_decode
+
+
+class FakeModel:
+    """generate() returns prompt prefix + a configured reply (in ids)."""
+    device = 'cpu'
+
+    def __init__(self, reply_tokens: int, reply_text: str, tokenizer: FakeTokenizer):
+        self._reply_tokens = reply_tokens
+        self._reply_text   = reply_text
+        self._tok          = tokenizer
+        self.last_kwargs   = None
+
+    def eval(self):
+        return self
+
+    def generate(self, **kwargs):
+        self.last_kwargs = kwargs
+        n_in = kwargs['input_ids'].shape[1]
+        # ids: 0..n_in-1 = prompt prefix; n_in..n_in+reply_tokens-1 = generated.
+        all_ids = list(range(n_in + self._reply_tokens))
+        self._tok._next_decode = self._reply_text
+        return _OutShape(all_ids)
+
+
+def test_local_adapter_returns_sql_and_token_counts(fake_torch):
+    tok   = FakeTokenizer()
+    model = FakeModel(reply_tokens=5, reply_text='SELECT count(*) FROM t', tokenizer=tok)
+    gen   = make_local_generate_fn(model, tok, max_tokens=100, temperature=0.7)
+
+    sql, n_in, n_out = gen("how many rows?")  # 3 words → after chat template: '<chat> ...' (5 tokens)
+    assert sql == 'SELECT count(*) FROM t'
+    # FakeTokenizer counts words; chat template adds one prefix token '<chat>'.
+    assert n_in  == len("<chat> how many rows?".split())  # = 4
+    assert n_out == 5
+
+
+def test_local_adapter_strips_sql_code_fence(fake_torch):
+    tok   = FakeTokenizer()
+    model = FakeModel(
+        reply_tokens=4,
+        reply_text="```sql\nSELECT 1\n```",
+        tokenizer=tok,
+    )
+    gen = make_local_generate_fn(model, tok)
+    sql, _, _ = gen("q")
+    assert sql == 'SELECT 1'
+
+
+def test_local_adapter_forwards_temperature_and_max_tokens(fake_torch):
+    tok   = FakeTokenizer()
+    model = FakeModel(reply_tokens=1, reply_text='X', tokenizer=tok)
+    gen   = make_local_generate_fn(model, tok, max_tokens=123, temperature=0.42)
+    gen("p")
+    assert model.last_kwargs['max_new_tokens'] == 123
+    assert model.last_kwargs['do_sample']      is True
+    assert model.last_kwargs['temperature']    == 0.42
+
+
+def test_local_adapter_greedy_when_temperature_zero(fake_torch):
+    """do_sample must be False at T=0 — otherwise HF errors out."""
+    tok   = FakeTokenizer()
+    model = FakeModel(reply_tokens=1, reply_text='X', tokenizer=tok)
+    gen   = make_local_generate_fn(model, tok, temperature=0.0)
+    gen("p")
+    assert model.last_kwargs['do_sample']  is False
+    # temperature must NOT be forwarded when do_sample is False.
+    assert 'temperature' not in model.last_kwargs
+
+
+def test_local_adapter_falls_back_to_raw_prompt_for_base_models(fake_torch):
+    """No chat_template (base model) → raw prompt is fed straight in."""
+    tok = FakeTokenizer(chat_template=None)
+    # FakeTokenizer.apply_chat_template would assert, so calling it would crash;
+    # if _apply_chat_template correctly skips it, we never touch it.
+    model = FakeModel(reply_tokens=2, reply_text='SELECT 1', tokenizer=tok)
+    gen   = make_local_generate_fn(model, tok)
+    sql, n_in, _ = gen("how many")  # 2 words, no chat prefix
+    assert sql == 'SELECT 1'
+    assert n_in == 2
+
+
+# ── _apply_chat_template ─────────────────────────────────────────────────────
+
+def test_apply_chat_template_uses_template_when_present():
+    tok = FakeTokenizer(chat_template='<chat>')
+    assert _apply_chat_template(tok, 'hello') == '<chat> hello'
+
+
+def test_apply_chat_template_returns_raw_for_base_model():
+    tok = FakeTokenizer(chat_template=None)
+    assert _apply_chat_template(tok, 'hello') == 'hello'

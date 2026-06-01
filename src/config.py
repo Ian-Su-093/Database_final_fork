@@ -15,10 +15,15 @@ REWARD_CORRECT = +1.0
 REWARD_WRONG   = -1.0
 
 # ── Baseline backbone (HF Inference API) ─────────────────────────────────────
-BASELINE_MODEL = 'Qwen/Qwen2.5-Coder-1.5B-Instruct'
+BASELINE_MODEL = 'Qwen/Qwen2.5-Coder-1.5B-Instruct:featherless-ai'
 MAX_TOKENS     = 500      # max generated tokens per API call
 MAX_RETRIES    = 3        # full-regen attempts per sample (wrong-SQL retries)
 TEMPERATURE    = 0.9      # baseline randomness (0.0 = greedy, 1.0 = high variance)
+
+# ── Baseline backbone (local inference) ──────────────────────────────────────
+LOCAL_MODEL  = 'Qwen/Qwen2.5-Coder-1.5B-Instruct'
+LOCAL_DTYPE  = 'float16'  # 'float16' | 'bfloat16' | 'float32'
+LOCAL_DEVICE = 'auto'     # 'auto' | 'cuda' | 'cpu'
 
 # ── API retry policy ─────────────────────────────────────────────────────────
 API_RETRIES      = 4      # attempts per API call before giving up
