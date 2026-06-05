@@ -58,15 +58,10 @@ rm -rf __MACOSX/
 ## Evaluation
 
 ```bash
-# Local backend (no API key needed; first run downloads ~3 GB)
-python scripts/evaluate.py --split dev --backend local --max-samples 20
-
-# With Plan B (ClausePRM + Best-of-N) — needs a trained PRM checkpoint
-python scripts/evaluate.py --split dev --backend local --max-samples 20 \
-    --plan-b-ckpt clause_ppo/results/prm_checkpoints/best_checkpoint
-
-# API backend — set HF_TOKEN in .env first
 python scripts/evaluate.py --split dev --max-samples 20
+
+# Local backend — no API, no 504s. First run downloads ~3 GB weights.
+python scripts/evaluate.py --split dev --backend local --max-samples 20
 ```
 
 Output (Accuracy@N where N = `--max-retries`, default 3):
@@ -76,6 +71,20 @@ Output (Accuracy@N where N = `--max-retries`, default 3):
 | Full regen    |          ? |              ? |
 | Plan B (PRM)  |          ? |              ? |
 | Clause PPO    |          ? |              ? |
+
+- **Baseline backbone:** `Qwen/Qwen2.5-Coder-1.5B-Instruct`, available via two
+  backends — `--backend api` (HF Inference API via Featherless AI) or
+  `--backend local` (downloads weights, runs on-device). Precision and device
+  for the local backend come from [`src/config.py`](src/config.py)
+  (`LOCAL_DTYPE`, `LOCAL_DEVICE`), not CLI flags.
+- **Token:** read from `HF_TOKEN` in `.env` (gitignored); needed for `api`,
+  optional for `local`. Never a CLI flag.
+- **Clause PPO column** needs `--ppo-ckpt PATH`, but currently raises
+  `NotImplementedError` until the PPO actor exposes an inference entry point
+  (see `.claude/docs/QUESTIONS.md`).
+
+Flags: `--split {dev,train}`, `--backend {api,local}`, `--max-retries N`,
+`--model ID`, `--max-tokens N`, `--max-samples N`, `--output preds.json`.
 
 Run the test suite (no GPU or API calls required — backends are faked):
 

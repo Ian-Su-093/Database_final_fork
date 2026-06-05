@@ -16,7 +16,7 @@ REWARD_WRONG   = -1.0
 
 # ── Baseline backbone (HF Inference API) ─────────────────────────────────────
 BASELINE_MODEL = 'Qwen/Qwen2.5-Coder-1.5B-Instruct:featherless-ai'
-MAX_TOKENS     = 500      # max generated tokens per API call
+MAX_TOKENS     = 500      # max generated tokens per call (shared by API + local)
 MAX_RETRIES    = 3        # full-regen attempts per sample (wrong-SQL retries)
 TEMPERATURE    = 0.9      # baseline randomness (0.0 = greedy, 1.0 = high variance)
 
