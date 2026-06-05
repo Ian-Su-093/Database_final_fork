@@ -9,7 +9,9 @@ Sam's modules for the clause-PPO pipeline.
 | Module | What it does |
 |--------|-------------|
 | `src/env/env.py` | RL environment — wraps SQLite execution into a gym-style `reset / step` interface |
-| `src/eval/metrics.py` | Evaluation — Spider EX and per-clause token F1 |
+| `src/eval/metrics.py` | Evaluation — Spider EX, per-clause token F1, SQL prefix splitter |
+| `src/eval/best_of_n.py` | Plan B — ClausePRM + Best-of-N clause repair at inference time |
+| `src/baseline/plan_b_inference.py` | Thin adapter between `evaluate.py` and `best_of_n.py` |
 
 ---
 
@@ -114,9 +116,10 @@ already knows the faulty clause. It is used in `validate_env.py` (integration te
 with a mock PRM) and will be relevant at inference time when no corruption engine
 is available.
 
-**Note on `score_clause`:** there is no per-clause scoring loop during generation.
-The PRM scores the corrupted prefix once after generation (see `build_prm_prompt`).
-Clause scoring during autoregressive generation is a future extension.
+**Note on `score_clause`:** during PPO training, the PRM scores the corrupted
+prefix once after generation (see `build_prm_prompt`). At inference time, Plan B
+(`src/eval/best_of_n.py`) uses `score_clauses()` to score each cumulative prefix
+and identify the faulty clause via argmin.
 
 ### Constructor options
 
@@ -135,7 +138,7 @@ NL2SQLEnv(
 ### Import
 
 ```python
-from eval.metrics import execution_accuracy, partial_match
+from eval.metrics import execution_accuracy, partial_match, split_sql_prefixes
 ```
 
 ### execution_accuracy
@@ -168,6 +171,18 @@ average (to avoid inflating scores).
 
 **Note:** uses a flat regex split, not a full SQL parser. Good for coarse
 diagnosis; use EX as the primary metric.
+
+### split_sql_prefixes
+
+Splits a raw SQL string into cumulative `(clause_label, prefix_sql)` pairs,
+used by Plan B for per-clause PRM scoring.
+
+```python
+split_sql_prefixes("SELECT a FROM t WHERE x = 1")
+# → [('SELECT', 'SELECT a'),
+#    ('FROM',   'SELECT a FROM t'),
+#    ('WHERE',  'SELECT a FROM t WHERE x = 1')]
+```
 
 ---
 
@@ -247,9 +262,55 @@ Both `from_pretrained` calls auto-download from the HF hub on first use.
   net on a 3050Ti laptop's 4 GB).
 - Token counts come straight from the tokenizer / generated ids — no
   `fallback_tokenizer` needed.
+### With local inference (no API, no 504s)
+
+Same Qwen-1.5B model, run on-device. No HF token needed; the first call to
+`load_local_model` downloads the weights (~3 GB) into the HF cache
+(`~/.cache/huggingface/hub/`), then loads them onto GPU.
+
+```bash
+pip install torch transformers      # one-time, if not already in your venv
+```
+
+```python
+from baseline.full_regen import load_local_model, make_local_generate_fn, run_baseline
+from config import LOCAL_MODEL, LOCAL_DTYPE, LOCAL_DEVICE
+
+# First call: ~3 GB download from HF + load into GPU memory.
+# Subsequent calls: cached, load is instant.
+model, tokenizer = load_local_model(
+    model_id=LOCAL_MODEL,    # 'Qwen/Qwen2.5-Coder-1.5B-Instruct'
+    dtype=LOCAL_DTYPE,       # 'float16' (~3 GB VRAM) | 'bfloat16' | 'float32'
+    device=LOCAL_DEVICE,     # 'auto' (recommended) | 'cuda' | 'cpu'
+)
+generate_fn = make_local_generate_fn(model, tokenizer)
+
+result = run_baseline(sample, generate_fn, max_retries=3, env=env)
+```
+
+What `load_local_model` does under the hood:
+
+```python
+# from baseline/full_regen.py
+tokenizer = AutoTokenizer.from_pretrained(model_id)
+model     = AutoModelForCausalLM.from_pretrained(
+    model_id, dtype=torch.float16, device_map='auto',
+)
+```
+
+Both `from_pretrained` calls auto-download from the HF hub on first use.
+
+- Adjust precision / device in [`src/config.py`](config.py) (`LOCAL_DTYPE`,
+  `LOCAL_DEVICE`) — these are deliberately not CLI flags.
+- `device='auto'` lets HF spill layers to CPU if VRAM is tight (good safety
+  net on a 3050Ti laptop's 4 GB).
+- Token counts come straight from the tokenizer / generated ids — no
+  `fallback_tokenizer` needed.
 
 ### Adding another backend
 
+Write a `generate_fn` (e.g. the PPO actor once inference exists) and pass it
+straight to `run_baseline`.
 Write a `generate_fn` (e.g. the PPO actor once inference exists) and pass it
 straight to `run_baseline`.
 
@@ -277,8 +338,11 @@ Runs the full-regen baseline over the split and prints the comparison table.
 Precision / device for `--backend local` come from [`src/config.py`](config.py)
 (`LOCAL_DTYPE`, `LOCAL_DEVICE`), not CLI flags.
 
-`--ppo-ckpt` is accepted but the PPO path raises `NotImplementedError` until
-Henry exposes an actor-loading inference entry point (see QUESTIONS.md).
+`--plan-b-ckpt PATH` enables Plan B (ClausePRM + Best-of-N); output JSON gains
+`plan_b_sql` and `plan_b_token_cost` fields per sample.
+
+`--ppo-ckpt` is accepted but raises `NotImplementedError` until Henry exposes
+an actor-loading inference entry point (see QUESTIONS.md).
 
 ---
 

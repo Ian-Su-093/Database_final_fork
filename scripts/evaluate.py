@@ -1,19 +1,22 @@
 #!/usr/bin/env python3
 """
-Evaluate baseline (full regeneration) and PPO (clause-level repair) on Spider.
+Evaluate baseline (full regeneration), Plan B (ClausePRM), and PPO (clause-level repair) on Spider.
 
 Outputs a markdown comparison table:
 
-    | Method     | Accuracy@N | Avg Token Cost |
-    | Full regen |    ?       |      ?         |
-    | Clause PPO |    ?       |      ?         |
+    | Method        | Accuracy@N | Avg Token Cost |
+    | Full regen    |    ?       |      ?         |
+    | Plan B (PRM)  |    ?       |      ?         |
+    | Clause PPO    |    ?       |      ?         |
 
+Plan B is the pure reward model approach (ClausePRM + Best-of-N).
 PPO inference is a stub today — see run_clause_ppo() and QUESTIONS.md.
 
 Usage:
     python scripts/evaluate.py --split dev
     python scripts/evaluate.py --split dev --max-retries 3 --max-samples 20
     python scripts/evaluate.py --split dev --backend local --max-samples 20
+    python scripts/evaluate.py --split dev --plan-b-ckpt clause_ppo/results/prm_checkpoints/best_checkpoint
     python scripts/evaluate.py --split dev --ppo-ckpt clause_ppo/results/ppo_checkpoints/ep_3000
 """
 
@@ -63,6 +66,8 @@ def parse_args():
                    help='Max generated tokens per call.')
     p.add_argument('--ppo-ckpt',    default=None,
                    help='PPO actor checkpoint. PPO path is a stub today (see run_clause_ppo).')
+    p.add_argument('--plan-b-ckpt', default=None,
+                   help='ClausePRM checkpoint for Plan B inference (pure reward model approach).')
     p.add_argument('--max-samples', type=int, default=None,
                    help='Truncate the split for a quick smoke run.')
     p.add_argument('--output',      default=None,
@@ -169,6 +174,28 @@ def run_clause_ppo(
     )
 
 
+def run_plan_b(
+    samples:     list[dict],
+    prm_ckpt:    str,
+    max_retries: int,
+) -> tuple[list[str], list[int], list[int], list[bool]]:
+    """
+    Run Plan B inference: ClausePRM + Best-of-N clause repair.
+    
+    Pure reward model approach (no RL training):
+    - Uses trained ClausePRM to identify faulty clauses
+    - Generates repair candidates with oracle selection
+    """
+    from baseline.plan_b_inference import run_plan_b_inference
+    
+    return run_plan_b_inference(
+        samples=samples,
+        prm_ckpt=prm_ckpt,
+        max_retries=max_retries,
+        limit=None
+    )
+
+
 # ── Output ─────────────────────────────────────────────────────────────────
 
 def print_table(rows: list[dict], n: int):
@@ -187,28 +214,39 @@ def print_table(rows: list[dict], n: int):
 
 
 def dump_predictions(
-    output_path: str,
-    samples:     list[dict],
-    preds:       list[str],
-    tokens:      list[int],
-    attempts:    list[int],
-    args:        argparse.Namespace,
+    output_path:      str,
+    samples:          list[dict],
+    preds:            list[str],
+    tokens:           list[int],
+    attempts:         list[int],
+    args:             argparse.Namespace,
+    plan_b_preds:     list[str]  | None = None,
+    plan_b_tokens:    list[int]  | None = None,
+    plan_b_attempts:  list[int]  | None = None,
+    plan_b_successes: list[bool] | None = None,
 ):
     """Write per-sample predictions as JSON for offline inspection."""
+    rows = []
+    for i, (s, p, t, a) in enumerate(zip(samples, preds, tokens, attempts)):
+        row = {
+            'db_id':         s['db_id'],
+            'question':      s['question'],
+            'gold_sql':      s.get('gold_sql') or s.get('query'),
+            'predicted_sql': p,
+            'token_cost':    t,
+            'attempts':      a,
+        }
+        if plan_b_preds is not None:
+            row['plan_b_sql']      = plan_b_preds[i]
+            row['plan_b_tokens']   = plan_b_tokens[i]   if plan_b_tokens   else None
+            row['plan_b_attempts'] = plan_b_attempts[i] if plan_b_attempts else None
+            row['plan_b_success']  = plan_b_successes[i] if plan_b_successes else None
+        rows.append(row)
+
     payload = {
         'split':       args.split,
         'max_retries': args.max_retries,
-        'samples': [
-            {
-                'db_id':         s['db_id'],
-                'question':      s['question'],
-                'gold_sql':      s.get('gold_sql') or s.get('query'),
-                'predicted_sql': p,
-                'token_cost':    t,
-                'attempts':      a,
-            }
-            for s, p, t, a in zip(samples, preds, tokens, attempts)
-        ],
+        'samples':     rows,
     }
     with open(output_path, 'w') as f:
         json.dump(payload, f, indent=2)
@@ -255,10 +293,37 @@ def main():
         except NotImplementedError as e:
             print(f"  Skipped — {e}")
 
+    plan_b_preds     = None
+    plan_b_tokens    = None
+    plan_b_attempts  = None
+    plan_b_successes = None
+
+    if args.plan_b_ckpt is not None:
+        print(f"\nRunning Plan B (ClausePRM + Best-of-N) (--plan-b-ckpt {args.plan_b_ckpt})")
+        try:
+            plan_b_preds, plan_b_tokens, plan_b_attempts, plan_b_successes = run_plan_b(
+                samples, args.plan_b_ckpt, args.max_retries,
+            )
+            plan_b_acc = execution_accuracy(plan_b_preds, samples, spider_dir=args.spider_dir)
+            plan_b_avg = sum(plan_b_tokens) / len(plan_b_tokens) if plan_b_tokens else 0.0
+            rows.append({
+                'method':     'Plan B (PRM)',
+                'accuracy':   plan_b_acc,
+                'avg_tokens': plan_b_avg,
+            })
+        except Exception as e:
+            print(f"  Plan B failed — {e}")
+
     print_table(rows, n=args.max_retries)
 
     if args.output:
-        dump_predictions(args.output, samples, preds, tokens, attempts, args)
+        dump_predictions(
+            args.output, samples, preds, tokens, attempts, args,
+            plan_b_preds=plan_b_preds,
+            plan_b_tokens=plan_b_tokens,
+            plan_b_attempts=plan_b_attempts,
+            plan_b_successes=plan_b_successes,
+        )
 
 
 if __name__ == '__main__':

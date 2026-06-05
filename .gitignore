@@ -26,3 +26,6 @@ venv/
 **/spider/*
 !**/spider/README.md
 *.zip
+
+# Training results
+results/

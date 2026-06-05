@@ -1,0 +1,20 @@
+# Qwen1.5-1.8B evaluation config for Plan B testing
+# Uses locally cached model from reward training
+
+model:
+  base_name: /home/henrylin0822/models/qwen
+  lora_rank: 16
+  lora_alpha: 32
+  lora_dropout: 0.05
+  target_modules: [q_proj, v_proj]
+  quantization: none           # Disable quantization for testing
+
+eval:
+  n_candidates: 3              # Fewer candidates for testing
+  temperature: 0.7             
+  max_new_tokens: 128          # Increased for complete SQL generation
+  max_prompt_length: 512       
+  max_prm_length: 256          
+
+paths:
+  output_file: results/eval_qwen_test.jsonl
